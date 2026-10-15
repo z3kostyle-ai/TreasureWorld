@@ -726,6 +726,8 @@ function authErrMsg(e){
   if(code==='email_not_confirmed')return t('t_email_unconfirmed');
   if(code==='email_exists'||code==='user_already_exists'||m.includes('already been registered'))return t('t_email_exists');
   if(code.startsWith('over_')||m.includes('rate limit'))return t('t_too_many');
+  if(m.includes('error sending'))return t('t_email_send_fail');          // SMTP (Brevo) refuse l'envoi
+  if(e?.status===404)return t('t_feature_off');                              // ex. empreinte pas encore activée
   if(code==='weak_password')return t('t_pw_short');
   if(m.includes('not enabled')||m.includes('disabled')||code==='provider_disabled'||code.includes('disabled'))return t('t_feature_off');
   return t('t_error',{msg:e?.message||e});

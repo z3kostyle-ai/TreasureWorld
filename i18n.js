@@ -13,6 +13,7 @@ const LANGS = {
 
 const I18N = {
 fr: {
+  t_email_send_fail: "L’envoi d’emails ne fonctionne pas encore sur le serveur. Réessaie plus tard ou joue en invité en attendant.",
   edit_hunt: "✏️ Modifier",
   delete_hunt: "🗑 Supprimer",
   edit_title: "Modifier la chasse",
@@ -144,6 +145,7 @@ fr: {
 },
 
 en: {
+  t_email_send_fail: "Sending emails isn’t working on the server yet. Try again later, or keep playing as a guest meanwhile.",
   edit_hunt: "✏️ Edit",
   delete_hunt: "🗑 Delete",
   edit_title: "Edit hunt",
@@ -275,6 +277,7 @@ en: {
 },
 
 de: {
+  t_email_send_fail: "Der E-Mail-Versand funktioniert auf dem Server noch nicht. Versuch es später erneut oder spiel so lange als Gast.",
   edit_hunt: "✏️ Bearbeiten",
   delete_hunt: "🗑 Löschen",
   edit_title: "Jagd bearbeiten",
@@ -406,6 +409,7 @@ de: {
 },
 
 nl: {
+  t_email_send_fail: "E-mails versturen werkt nog niet op de server. Probeer het later opnieuw of speel intussen als gast.",
   edit_hunt: "✏️ Bewerken",
   delete_hunt: "🗑 Verwijderen",
   edit_title: "Speurtocht bewerken",
@@ -537,6 +541,7 @@ nl: {
 },
 
 es: {
+  t_email_send_fail: "El envío de emails aún no funciona en el servidor. Inténtalo más tarde o sigue jugando como invitado.",
   edit_hunt: "✏️ Editar",
   delete_hunt: "🗑 Eliminar",
   edit_title: "Editar la búsqueda",
@@ -668,6 +673,7 @@ es: {
 },
 
 it: {
+  t_email_send_fail: "L’invio di email non funziona ancora sul server. Riprova più tardi o continua a giocare come ospite.",
   edit_hunt: "✏️ Modifica",
   delete_hunt: "🗑 Elimina",
   edit_title: "Modifica la caccia",
