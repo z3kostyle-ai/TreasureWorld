@@ -990,13 +990,16 @@ async function loadHunts(){
 async function decorateHunts(){
   const ids=huntsCache.map(h=>h.id);
   if(!ids.length)return;
-  const [{data:extra},{data:trs}]=await Promise.all([
+  const [{data:extra},{data:trs},{data:steps}]=await Promise.all([
     sb.from('hunts').select('id,lang,country_code,city').in('id',ids),
     sb.from('hunt_translations').select('hunt_id,lang,name').in('hunt_id',ids),
+    sb.from('hunt_steps').select('hunt_id').in('hunt_id',ids),
   ]);
   const ex=Object.fromEntries((extra||[]).map(e=>[e.id,e]));
   huntsCache.forEach(h=>{
     Object.assign(h,ex[h.id]||{});
+    // le nombre d'étapes de la vue publique est faussé (multiplié) : on le recompte
+    if(steps)h.step_count=steps.filter(s=>s.hunt_id===h.id).length;
     h.lang=h.lang||'fr';
     const mine=(trs||[]).filter(x=>x.hunt_id===h.id);
     h.langs=[h.lang,...mine.map(x=>x.lang)];
