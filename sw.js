@@ -2,7 +2,7 @@
 //  TreasureWorld — service worker (application installable + hors ligne)
 //  Changer VERSION à chaque mise à jour du site pour renouveler le cache.
 // ═══════════════════════════════════════════════════════════════
-const VERSION = 'tw-v8';
+const VERSION = 'tw-v9';
 const APP_CACHE = `${VERSION}-app`;      // l'application elle-même
 const LIB_CACHE = 'tw-libs-v1';          // bibliothèques externes (adresses versionnées)
 const TILE_CACHE = 'tw-tiles-v1';        // tuiles de carte satellite déjà vues

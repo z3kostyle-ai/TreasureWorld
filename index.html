@@ -258,6 +258,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 .ios-steps{font-size:14px;line-height:2;margin:6px 0 14px;white-space:pre-line;}
 @media (display-mode: standalone){.topbar{padding-top:max(10px,env(safe-area-inset-top));}}
 
+.edit-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--purple-bg);color:var(--purple-dark);border-radius:8px;padding:8px 11px;font-size:11px;margin-bottom:10px;}
+.ios-note{margin:12px 14px 0;background:#EAF3FB;border:1px solid #B5D4F4;color:#0C447C;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.5;}
+.ios-note .acc-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.del-btn:disabled{opacity:.25;cursor:default;}
+
 /* LOADING */
 .loading{text-align:center;padding:2rem;font-size:13px;color:#888;}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid #e0ddd6;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-right:7px;vertical-align:middle;}
@@ -296,6 +301,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
     <img src="icons/icon-192.png" alt="" width="72" height="72" style="border-radius:16px;margin-bottom:8px;"/>
     <h3 data-i18n="install_title"></h3>
     <div class="ios-steps" data-i18n="install_ios"></div>
+    <div class="note" style="margin-bottom:12px;" data-i18n="install_ios_tip"></div>
     <button class="btn btn-amber btn-full" onclick="document.getElementById('ios-modal').classList.remove('show')" data-i18n="ok"></button>
   </div>
 </div>
@@ -342,6 +348,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 
 <!-- ── PROFIL ── -->
 <div class="view active" id="view-profil">
+  <div class="ios-note" id="ios-note" style="display:none;"></div>
 
   <!-- Accueil : invité / connexion / inscription -->
   <div id="welcome-screen" class="pscreen">
@@ -504,7 +511,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 <!-- ── CRÉER ── -->
 <div class="view" id="view-creer">
   <div class="panel">
-    <div class="sh"><h2 data-i18n="create_title"></h2><button class="btn btn-amber" onclick="publishHunt()" data-i18n="publish"></button></div>
+    <div class="sh"><h2 id="creator-title"></h2><button class="btn btn-amber" id="publish-btn" onclick="publishHunt()"></button></div>
+    <div class="edit-bar" id="edit-bar" style="display:none;">
+      <span data-i18n="edit_note"></span>
+      <button class="btn btn-sm" onclick="cancelEdit()" data-i18n="cancel_edit"></button>
+    </div>
     <div class="row2">
       <div class="field"><label data-i18n="c_name"></label><input type="text" id="c-name" data-i18n-ph="c_name_ph"/></div>
       <div class="field"><label data-i18n="c_code"></label><input type="text" id="c-code" placeholder="MOULIN1" maxlength="8"/></div>
@@ -548,7 +559,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
         <input type="range" min="5" max="80" value="20" step="5" id="c-rad" oninput="document.getElementById('c-rad-lbl').textContent=this.value" style="width:100%;"/>
       </div>
       <div style="display:flex;gap:7px;">
-        <button class="btn btn-teal" onclick="confirmCStep()" data-i18n="c_validate"></button>
+        <button class="btn btn-teal" id="c-step-btn" onclick="confirmCStep()"></button>
         <button class="btn" onclick="cancelCStep()" data-i18n="cancel"></button>
       </div>
     </div>
@@ -603,6 +614,9 @@ async function setLang(l){
   fillCountrySelect(document.getElementById('c-country'),document.getElementById('c-country').value);
   document.getElementById('scan-title').textContent=t('scan_title');
   refreshSetupTexts();
+  updateCreatorMode();
+  document.getElementById('c-step-btn').textContent=t(editingStepIdx!==null?'c_update_step':'c_validate');
+  renderIosNote();
   if(profile.id){renderProfile();renderAccountBox();}
   if(huntsCache.length){await decorateHunts();renderHuntList();}
   if(document.getElementById('view-scores').classList.contains('active'))loadLeaderboard();
@@ -822,6 +836,7 @@ async function afterLogin(){
   }
   profile={...EMPTY_PROFILE};
   await restoreProfile();
+  renderIosNote();
 }
 async function doLogin(){
   const email=document.getElementById('login-email').value.trim();
@@ -901,6 +916,7 @@ async function logout(){
   document.getElementById('game-screen').style.display='none';
   document.getElementById('join-screen').style.display='block';
   showPScreen('welcome-screen');
+  renderIosNote();
   toast(t('t_logged_out'));
 }
 function renderAccountBox(){
@@ -1477,73 +1493,188 @@ function randomQRCode(){
   const abc='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return 'TW-'+Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>abc[b%abc.length]).join('');
 }
-function confirmCStep(){
-  if(!cPending){toast(t('t_click_map'));return;}
+let editingHuntId=null, editingStepIdx=null;
+function readStepForm(){
+  if(!cPending){toast(t('t_click_map'));return null;}
   const text=document.getElementById('c-enigme').value.trim();
-  if(!text){toast(t('t_add_text'));return;}
+  if(!text){toast(t('t_add_text'));return null;}
   const type=document.getElementById('c-type').value;
   let ans=document.getElementById('c-ans').value.trim();
   if(type==='qr'&&!ans)ans=randomQRCode();
-  const hint=document.getElementById('c-hint').value.trim();
-  const rad=parseInt(document.getElementById('c-rad').value);
-  if(type!=='prox'&&!ans){toast(t('t_add_answer'));return;}
-  cStepsData.push({lat:cPending.lat,lng:cPending.lng,step_type:type,text,answer:type==='prox'?'':ans,hint,trigger_radius:rad});
-  if(window._cTmp){creatorMap.removeLayer(window._cTmp);window._cTmp=null;}
+  if(type!=='prox'&&!ans){toast(t('t_add_answer'));return null;}
+  return {lat:cPending.lat,lng:cPending.lng,step_type:type,text,answer:type==='prox'?'':ans,
+    hint:document.getElementById('c-hint').value.trim(),trigger_radius:parseInt(document.getElementById('c-rad').value)};
+}
+function confirmCStep(){
+  const step=readStepForm();
+  if(!step)return;
+  if(editingStepIdx!==null)cStepsData[editingStepIdx]={...cStepsData[editingStepIdx],...step};   // garde l'id de l'étape existante
+  else cStepsData.push(step);
+  closeStepForm();
   renderCSteps();
+}
+function closeStepForm(){
+  if(window._cTmp){creatorMap.removeLayer(window._cTmp);window._cTmp=null;}
   document.getElementById('c-add-form').style.display='none';
   document.getElementById('c-enigme').value='';document.getElementById('c-ans').value='';document.getElementById('c-hint').value='';
-  cPending=null;
+  cPending=null; editingStepIdx=null;
+  document.getElementById('c-step-btn').textContent=t('c_validate');
+}
+function cancelCStep(){closeStepForm();}
+// Rouvre une étape dans le formulaire ; cliquer sur la carte déplace son point
+function editCStep(i){
+  const s=cStepsData[i];
+  editingStepIdx=i;
+  cPending={lat:s.lat,lng:s.lng};
+  document.getElementById('c-enigme').value=s.text;
+  document.getElementById('c-type').value=s.step_type;
+  toggleCAF();
+  document.getElementById('c-ans').value=s.answer||'';
+  document.getElementById('c-hint').value=s.hint||'';
+  document.getElementById('c-rad').value=s.trigger_radius;
+  document.getElementById('c-rad-lbl').textContent=s.trigger_radius;
+  document.getElementById('c-coord-info').textContent=t('c_gps',{c:s.lat.toFixed(6)+', '+s.lng.toFixed(6)})+' — '+t('c_move_hint');
+  document.getElementById('c-step-btn').textContent=t('c_update_step');
+  document.getElementById('c-add-form').style.display='block';
+  document.getElementById('c-add-form').scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(creatorMap)creatorMap.flyTo([s.lat,s.lng],Math.max(creatorMap.getZoom(),17),{duration:.6});
+}
+function moveCStep(i,d){
+  const j=i+d;
+  if(j<0||j>=cStepsData.length)return;
+  [cStepsData[i],cStepsData[j]]=[cStepsData[j],cStepsData[i]];
+  renderCSteps();
 }
 // Redessine la liste et la carte à partir de cStepsData (source unique)
 function renderCSteps(){
+  if(!creatorMap)return;
   cMarkers.forEach(m=>creatorMap.removeLayer(m));
   cCircles.forEach(c=>creatorMap.removeLayer(c));
   cMarkers=[];cCircles=[];
   document.getElementById('c-steps-list').innerHTML=cStepsData.map((s,i)=>{
     const icon=L.divIcon({className:'',iconSize:[26,26],iconAnchor:[13,13],
       html:`<div style="width:26px;height:26px;border-radius:50%;background:#FAEEDA;border:2px solid #BA7517;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#633806;">${i+1}</div>`});
-    cMarkers.push(L.marker([s.lat,s.lng],{icon}).addTo(creatorMap).bindPopup(esc(s.text)));
+    cMarkers.push(L.marker([s.lat,s.lng],{icon}).addTo(creatorMap).bindPopup(esc(s.text)).on('click',()=>editCStep(i)));
     cCircles.push(L.circle([s.lat,s.lng],{radius:s.trigger_radius,color:'#7F77DD',fillColor:'#EEEDFE',fillOpacity:0.25,weight:1.5}).addTo(creatorMap));
     const tLabel=s.step_type==='qr'?t('type_qr'):s.step_type==='prox'?t('step_arrival'):t('type_enigme');
-    return `<div class="c-step-item"><div class="c-step-num">${i+1}</div><div><div class="c-step-txt">${esc(s.text)}</div><div class="c-step-sub">${esc(tLabel)}${s.answer?' · "'+esc(s.answer)+'"':''} · ${s.trigger_radius}m · ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div></div><button class="del-btn" onclick="removeCStep(${i})">✕</button></div>`;
+    return `<div class="c-step-item"><div class="c-step-num">${i+1}</div>
+      <div><div class="c-step-txt">${esc(s.text)}</div><div class="c-step-sub">${esc(tLabel)}${s.answer?' · "'+esc(s.answer)+'"':''} · ${s.trigger_radius}m · ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div></div>
+      <div style="display:flex;gap:2px;">
+        <button class="del-btn" onclick="moveCStep(${i},-1)"${i===0?' disabled':''}>↑</button>
+        <button class="del-btn" onclick="moveCStep(${i},1)"${i===cStepsData.length-1?' disabled':''}>↓</button>
+        <button class="del-btn" onclick="editCStep(${i})">✏️</button>
+        <button class="del-btn" onclick="removeCStep(${i})">✕</button>
+      </div></div>`;
   }).join('');
 }
-function removeCStep(i){cStepsData.splice(i,1);renderCSteps();}
-function cancelCStep(){
-  if(window._cTmp){creatorMap.removeLayer(window._cTmp);window._cTmp=null;}
-  document.getElementById('c-add-form').style.display='none';cPending=null;
+function removeCStep(i){
+  cStepsData.splice(i,1);
+  if(editingStepIdx!==null)closeStepForm();
+  renderCSteps();
+}
+// Mode création / modification : titres et boutons de l'écran « Créer »
+function updateCreatorMode(){
+  const ed=!!editingHuntId;
+  document.getElementById('creator-title').textContent=t(ed?'edit_title':'create_title');
+  document.getElementById('publish-btn').textContent=t(ed?'save_changes':'publish');
+  document.getElementById('edit-bar').style.display=ed?'flex':'none';
+}
+function resetCreator(){
+  editingHuntId=null;
+  ['c-name','c-code','c-city','c-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-duration').value=45;
+  document.getElementById('c-diff').value='Moyen';
+  document.getElementById('c-lang').value=LANG;
+  fillCountrySelect(document.getElementById('c-country'),profile.countryCode||defaultCountry());
+  cStepsData=[];
+  closeStepForm();
+  renderCSteps();
+  updateCreatorMode();
+}
+function cancelEdit(){resetCreator();showView('meschasses');}
+// « Mes chasses » → ✏️ : recharge la chasse complète dans l'éditeur
+async function editHunt(i){
+  const {data,error}=await sb.rpc('tw_hunt_for_edit',{p_hunt_id:myHunts[i].id});
+  if(error){toast(errMsg(error));return;}
+  const H=data.hunt;
+  showView('creer');
+  editingHuntId=H.id;
+  document.getElementById('c-name').value=H.name||'';
+  document.getElementById('c-code').value=H.access_code||'';
+  document.getElementById('c-city').value=H.city||'';
+  document.getElementById('c-desc').value=H.description||'';
+  document.getElementById('c-duration').value=H.duration_min||45;
+  document.getElementById('c-diff').value=H.difficulty||'Moyen';
+  document.getElementById('c-lang').value=H.lang||'fr';
+  fillCountrySelect(document.getElementById('c-country'),H.country_code||codeOfFlag(H.country)||'FR');
+  cStepsData=data.steps.map(s=>({id:s.id,lat:Number(s.lat),lng:Number(s.lng),step_type:s.step_type,text:s.text||'',
+    answer:s.answer||'',hint:s.hint||'',trigger_radius:s.trigger_radius||20}));
+  document.getElementById('print-box').style.display='none';
+  updateCreatorMode();
+  setTimeout(()=>{
+    initCreatorMap();
+    closeStepForm();
+    renderCSteps();
+    if(cStepsData.length)creatorMap.fitBounds(L.latLngBounds(cStepsData.map(s=>[s.lat,s.lng])),{padding:[30,30],maxZoom:17});
+  },150);
+}
+async function deleteHunt(i){
+  const h=myHunts[i];
+  if(!confirm(t('confirm_delete_hunt',{name:h.name})))return;
+  const {error}=await sb.rpc('tw_delete_hunt',{p_hunt_id:h.id});
+  if(error){toast(errMsg(error));return;}
+  toast(t('hunt_deleted'));
+  if(editingHuntId===h.id)resetCreator();
+  loadMyHunts();
+}
+function huntFormData(){
+  const cc=document.getElementById('c-country').value, hl=document.getElementById('c-lang').value;
+  return {
+    name:document.getElementById('c-name').value.trim(),
+    access_code:document.getElementById('c-code').value.trim().toUpperCase(),
+    country:countryStored(cc,hl), country_code:cc, lang:hl,
+    city:document.getElementById('c-city').value.trim(),
+    duration_min:parseInt(document.getElementById('c-duration').value)||null,
+    difficulty:document.getElementById('c-diff').value,
+    description:document.getElementById('c-desc').value,
+  };
 }
 async function publishHunt(){
   if(!profile.id){toast(t('t_need_profile'));return;}
-  const name=document.getElementById('c-name').value.trim();
-  const code=document.getElementById('c-code').value.trim().toUpperCase();
-  if(!name||!code){toast(t('t_name_code'));return;}
+  const f=huntFormData();
+  if(!f.name||!f.access_code){toast(t('t_name_code'));return;}
   if(cStepsData.length<2){toast(t('t_two_steps'));return;}
-  const cc=document.getElementById('c-country').value, hl=document.getElementById('c-lang').value;
-  const first=cStepsData[0];
-  const {data:hunt,error}=await sb.from('hunts').insert({
-    creator_id:profile.id, name, access_code:code,
-    country:countryStored(cc,hl), country_code:cc, lang:hl,
-    city:document.getElementById('c-city').value.trim(),
-    duration_min:parseInt(document.getElementById('c-duration').value),
-    difficulty:document.getElementById('c-diff').value,
-    description:document.getElementById('c-desc').value,
-    status:'publiee',
-    start_lat:first.lat, start_lng:first.lng,
-  }).select().single();
-  if(error){toast(t('t_publish_error',{msg:error.message||error.code}));return;}
-  const {error:se}=await sb.from('hunt_steps').insert(cStepsData.map((s,i)=>({...s,hunt_id:hunt.id,step_order:i+1})));
-  if(se){toast(t('t_publish_error',{msg:se.message}));return;}
-  toast(t('t_published',{c:code}),5000);
-  lastPublished={name,code,steps:cStepsData.map((s,i)=>({...s,step_order:i+1}))};
-  const nQR=lastPublished.steps.filter(s=>s.step_type==='qr').length;
-  document.getElementById('print-box-txt').textContent=t('print_ready',{name,extra:nQR?t('print_extra',{n:nQR}):''});
-  document.getElementById('print-box').style.display='flex';
-  cStepsData=[];
-  renderCSteps();
-  const {data:newTrophies}=await sb.rpc('tw_after_publish');
-  await refreshProfile(true);
-  announceTrophies(newTrophies);
+  const btn=document.getElementById('publish-btn'); btn.disabled=true;
+  try{
+    if(editingHuntId){                                   // modification d'une chasse existante
+      const {error}=await sb.rpc('tw_update_hunt',{p_hunt_id:editingHuntId,p_data:{...f,steps:cStepsData}});
+      if(error){toast(huntErrMsg(error));return;}
+      toast(t('hunt_saved'),4000);
+      resetCreator();
+      showView('meschasses');
+      return;
+    }
+    const first=cStepsData[0];
+    const {data:hunt,error}=await sb.from('hunts').insert({...f,creator_id:profile.id,status:'publiee',start_lat:first.lat,start_lng:first.lng}).select().single();
+    if(error){toast(huntErrMsg(error));return;}
+    const {error:se}=await sb.from('hunt_steps').insert(cStepsData.map((s,i)=>({...s,hunt_id:hunt.id,step_order:i+1})));
+    if(se){toast(t('t_publish_error',{msg:se.message}));return;}
+    toast(t('t_published',{c:f.access_code}),5000);
+    lastPublished={name:f.name,code:f.access_code,steps:cStepsData.map((s,i)=>({...s,step_order:i+1}))};
+    const nQR=lastPublished.steps.filter(s=>s.step_type==='qr').length;
+    document.getElementById('print-box-txt').textContent=t('print_ready',{name:f.name,extra:nQR?t('print_extra',{n:nQR}):''});
+    document.getElementById('print-box').style.display='flex';
+    cStepsData=[];
+    renderCSteps();
+    const {data:newTrophies}=await sb.rpc('tw_after_publish');
+    await refreshProfile(true);
+    announceTrophies(newTrophies);
+  }finally{btn.disabled=false;}
+}
+function huntErrMsg(e){
+  const m=(e?.message||'')+' '+(e?.code||'');
+  if(m.includes('access_code')||m.includes('23505'))return t('e_code_taken');
+  return m.includes('nom_code_requis')?t('t_name_code'):m.includes('deux_etapes')?t('t_two_steps'):errMsg(e);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1675,10 +1806,12 @@ async function loadMyHunts(){
         <div class="mh-stat"><b>${esc(best)}</b><span>${esc(t('st_best'))}</span></div>
       </div>
       <div class="mh-actions">
+        <button class="btn btn-sm btn-amber" onclick="editHunt(${i})">${esc(t('edit_hunt'))}</button>
         <button class="btn btn-sm btn-purple" onclick="openTranslations(${i})">${esc(t('translations'))}</button>
         <button class="btn btn-sm" onclick="printMyHuntQR(${i})">${esc(t('print_qr'))}</button>
         <button class="btn btn-sm" onclick="copyHuntCode(${i})">${esc(t('copy_code'))}</button>
-        ${h.status==='publiee'?`<button class="btn btn-sm btn-amber" onclick="startPlay('${esc(h.id)}')">${esc(t('test'))}</button>`:''}
+        ${h.status==='publiee'?`<button class="btn btn-sm" onclick="startPlay('${esc(h.id)}')">${esc(t('test'))}</button>`:''}
+        <button class="btn btn-sm" style="color:#791F1F;" onclick="deleteHunt(${i})">${esc(t('delete_hunt'))}</button>
       </div>
     </div>`;
   }).join('');
@@ -1858,6 +1991,27 @@ async function installApp(){
   }
   if(isIOS)document.getElementById('ios-modal').classList.add('show');   // iPhone : marche à suivre
 }
+// Message iPhone : Safari et l'app installée ne partagent pas leurs données
+function renderIosNote(){
+  const box=document.getElementById('ios-note');
+  if(!isIOS){box.style.display='none';return;}
+  const inApp=isStandalone();
+  // Dans l'app : utile seulement tant que le joueur n'est pas connecté à un compte
+  const variant=inApp?(isGuest()?'app':null):'safari';
+  let seen=false; try{seen=localStorage.getItem('tw_ios_note_'+variant)==='1';}catch(e){}
+  if(!variant||seen){box.style.display='none';return;}
+  box.innerHTML=`📱 <b>iPhone</b> — ${esc(t(variant==='app'?'ios_note_app':'ios_note_safari'))}
+    <div class="acc-actions">
+      ${variant==='app'?`<button class="btn btn-sm btn-amber" onclick="showPScreen('login-screen')">${esc(t('login'))}</button>`
+        :`<button class="btn btn-sm btn-amber" onclick="installApp()">📲 ${esc(t('install_btn'))}</button>`}
+      <button class="btn btn-sm" onclick="dismissIosNote('${variant}')">${esc(t('got_it'))}</button>
+    </div>`;
+  box.style.display='block';
+}
+function dismissIosNote(v){
+  try{localStorage.setItem('tw_ios_note_'+v,'1');}catch(e){}
+  document.getElementById('ios-note').style.display='none';
+}
 function updateOnline(){document.getElementById('offline-bar').style.display=navigator.onLine?'none':'block';}
 window.addEventListener('online',updateOnline);
 window.addEventListener('offline',updateOnline);
@@ -1902,6 +2056,8 @@ async function init(){
   renderSoundBtn();
   updateInstallUI();
   updateOnline();
+  updateCreatorMode();
+  document.getElementById('c-step-btn').textContent=t('c_validate');
   document.getElementById('scan-title').textContent=t('scan_title');
   if(!window.PublicKeyCredential)document.getElementById('passkey-login-btn').style.display='none';
 
@@ -1920,6 +2076,7 @@ async function init(){
   if(session&&!isGuest()&&pendingMerge) await afterLogin();
   else await restoreProfile();
   maybeAskPassword();
+  renderIosNote();
   if(profile.countryCode)fillCountrySelect(document.getElementById('c-country'),profile.countryCode);
 }
 init();
