@@ -13,6 +13,7 @@ const LANGS = {
 
 const I18N = {
 fr: {
+  translating: "Traduction de la chasse dans ta langue…", tr_auto_note: "🤖 Traduction automatique (DeepL). Relis-la, corrige si besoin et enregistre pour la valider.",
   tab_profile: 'Profil', tab_discover: 'Découvrir', tab_play: 'Jouer', tab_scores: 'Classement', tab_create: 'Créer', tab_mine: 'Mes chasses',
   sound: 'Son', loading: 'Chargement…', refresh: 'Actualiser', close: 'Fermer', cancel: 'Annuler', ok: 'OK', back: '← Retour', or: 'ou',
 
@@ -126,6 +127,7 @@ fr: {
 },
 
 en: {
+  translating: "Translating the hunt into your language…", tr_auto_note: "🤖 Automatic translation (DeepL). Review it, fix it if needed and save to approve it.",
   tab_profile: 'Profile', tab_discover: 'Discover', tab_play: 'Play', tab_scores: 'Leaderboard', tab_create: 'Create', tab_mine: 'My hunts',
   sound: 'Sound', loading: 'Loading…', refresh: 'Refresh', close: 'Close', cancel: 'Cancel', ok: 'OK', back: '← Back', or: 'or',
 
@@ -239,6 +241,7 @@ en: {
 },
 
 de: {
+  translating: "Die Jagd wird in deine Sprache übersetzt…", tr_auto_note: "🤖 Automatische Übersetzung (DeepL). Lies sie durch, korrigiere sie bei Bedarf und speichere, um sie freizugeben.",
   tab_profile: 'Profil', tab_discover: 'Entdecken', tab_play: 'Spielen', tab_scores: 'Rangliste', tab_create: 'Erstellen', tab_mine: 'Meine Jagden',
   sound: 'Ton', loading: 'Wird geladen…', refresh: 'Aktualisieren', close: 'Schließen', cancel: 'Abbrechen', ok: 'OK', back: '← Zurück', or: 'oder',
 
@@ -352,6 +355,7 @@ de: {
 },
 
 nl: {
+  translating: "De speurtocht wordt in jouw taal vertaald…", tr_auto_note: "🤖 Automatische vertaling (DeepL). Lees ze na, verbeter waar nodig en sla op om ze goed te keuren.",
   tab_profile: 'Profiel', tab_discover: 'Ontdekken', tab_play: 'Spelen', tab_scores: 'Ranglijst', tab_create: 'Maken', tab_mine: 'Mijn speurtochten',
   sound: 'Geluid', loading: 'Laden…', refresh: 'Vernieuwen', close: 'Sluiten', cancel: 'Annuleren', ok: 'OK', back: '← Terug', or: 'of',
 
@@ -465,6 +469,7 @@ nl: {
 },
 
 es: {
+  translating: "Traduciendo la búsqueda a tu idioma…", tr_auto_note: "🤖 Traducción automática (DeepL). Revísala, corrígela si hace falta y guárdala para validarla.",
   tab_profile: 'Perfil', tab_discover: 'Descubrir', tab_play: 'Jugar', tab_scores: 'Clasificación', tab_create: 'Crear', tab_mine: 'Mis búsquedas',
   sound: 'Sonido', loading: 'Cargando…', refresh: 'Actualizar', close: 'Cerrar', cancel: 'Cancelar', ok: 'OK', back: '← Volver', or: 'o',
 
@@ -578,6 +583,7 @@ es: {
 },
 
 it: {
+  translating: "Traduzione della caccia nella tua lingua…", tr_auto_note: "🤖 Traduzione automatica (DeepL). Rileggila, correggila se serve e salvala per approvarla.",
   tab_profile: 'Profilo', tab_discover: 'Scopri', tab_play: 'Gioca', tab_scores: 'Classifica', tab_create: 'Crea', tab_mine: 'Le mie cacce',
   sound: 'Suono', loading: 'Caricamento…', refresh: 'Aggiorna', close: 'Chiudi', cancel: 'Annulla', ok: 'OK', back: '← Indietro', or: 'oppure',
 

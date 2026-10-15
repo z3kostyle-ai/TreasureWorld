@@ -1136,7 +1136,8 @@ async function startPlay(huntId){
   renderIntro();
 }
 // Textes de la chasse dans la langue du joueur (repli sur la langue d'origine)
-async function loadHuntTranslations(h){
+// Si la langue manque, le serveur la fait traduire par DeepL (une seule fois, gardée pour tous)
+async function loadHuntTranslations(h,autoTranslate=true){
   h.tr=null; h.stepTr={};
   const base=h.lang||'fr';
   if(LANG===base)return;
@@ -1144,6 +1145,16 @@ async function loadHuntTranslations(h){
     sb.from('hunt_translations').select('name,description').eq('hunt_id',h.id).eq('lang',LANG).maybeSingle(),
     sb.from('step_translations').select('step_id,text,hint').eq('lang',LANG).in('step_id',h.steps.map(s=>s.id)),
   ]);
+  if(!ht&&autoTranslate){
+    toast(t('translating'),8000);
+    const {data,error}=await sb.functions.invoke('translate-hunt',{body:{hunt_id:h.id,lang:LANG}});
+    if(!error&&(data?.status==='translated'||data?.status==='exists')){
+      document.getElementById('toast').className='toast';
+      return loadHuntTranslations(h,false);
+    }
+    console.warn('Traduction automatique indisponible',error||data);   // on joue dans la langue d'origine
+    return;
+  }
   h.tr=ht||null;
   (st||[]).forEach(x=>h.stepTr[x.step_id]=x);
 }
@@ -1670,7 +1681,7 @@ function renderTranslations(){
   const {data,lang}=trState, h=data.hunt, tr=data.translations[lang]||{steps:{}};
   const base=LANGS[h.lang]||{flag:'',name:h.lang};
   const langBtns=Object.entries(LANGS).filter(([l])=>l!==h.lang).map(([l,v])=>
-    `<button class="tr-lang${l===lang?' active':''}" onclick="trState.lang='${l}';renderTranslations()">${v.flag} ${v.name}${data.translations[l]?' ✓':''}</button>`).join('');
+    `<button class="tr-lang${l===lang?' active':''}" onclick="trState.lang='${l}';renderTranslations()">${v.flag} ${v.name}${data.translations[l]?(data.translations[l].auto?' 🤖':' ✓'):''}</button>`).join('');
   const steps=data.steps.map((s,i)=>{
     const st=(tr.steps||{})[s.id]||{};
     return `<div class="tr-step">
@@ -1688,6 +1699,7 @@ function renderTranslations(){
     <div class="note">${esc(t('tr_base',{lang:base.flag+' '+base.name}))}</div>
     <div class="note">${esc(t('tr_pick'))}</div>
     <div class="tr-langs">${langBtns}</div>
+    ${tr.auto?`<div class="coord-info">${esc(t('tr_auto_note'))}</div>`:''}
     <div class="field"><label>${esc(t('tr_name'))} — ${esc(t('tr_original'))} ${esc(h.name)}</label><input type="text" id="tr-name" value="${esc(tr.name||'')}"/></div>
     <div class="field"><label>${esc(t('tr_desc'))}</label><div class="tr-orig">${esc(h.description||'')}</div><textarea id="tr-desc" style="height:90px;">${esc(tr.description||'')}</textarea></div>
     ${steps}
