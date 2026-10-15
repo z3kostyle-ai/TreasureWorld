@@ -4,7 +4,15 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>TreasureWorld</title>
-<link rel="icon" href="https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f5fa.png">
+<meta name="description" content="Chasses au trésor GPS : énigmes, lieux secrets et histoires locales."/>
+<meta name="theme-color" content="#BA7517"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="TreasureWorld"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3"></script>
@@ -242,6 +250,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 @keyframes shake{20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:10000;}
 
+/* PWA : installation, hors ligne, mise à jour */
+.install-btn{padding:4px 9px;font-size:12px;border:0.5px solid var(--amber-light);border-radius:6px;cursor:pointer;background:var(--amber-bg);color:#633806;font-weight:500;}
+.offline-bar{display:none;background:#26215C;color:#fff;font-size:12px;padding:7px 14px;text-align:center;}
+.update-bar{display:none;position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:10002;background:#1a1a18;color:#fff;border-radius:10px;padding:9px 10px 9px 14px;font-size:13px;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:calc(100% - 32px);}
+.update-bar.show{display:flex;}
+.ios-steps{font-size:14px;line-height:2;margin:6px 0 14px;white-space:pre-line;}
+@media (display-mode: standalone){.topbar{padding-top:max(10px,env(safe-area-inset-top));}}
+
 /* LOADING */
 .loading{text-align:center;padding:2rem;font-size:13px;color:#888;}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid #e0ddd6;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-right:7px;vertical-align:middle;}
@@ -274,6 +290,22 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
   </div>
 </div>
 
+<!-- INSTALLATION SUR IPHONE / IPAD (Safari n'a pas de bouton d'installation automatique) -->
+<div class="modal" id="ios-modal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-inner" style="text-align:center;">
+    <img src="icons/icon-192.png" alt="" width="72" height="72" style="border-radius:16px;margin-bottom:8px;"/>
+    <h3 data-i18n="install_title"></h3>
+    <div class="ios-steps" data-i18n="install_ios"></div>
+    <button class="btn btn-amber btn-full" onclick="document.getElementById('ios-modal').classList.remove('show')" data-i18n="ok"></button>
+  </div>
+</div>
+
+<!-- NOUVELLE VERSION DISPONIBLE -->
+<div class="update-bar" id="update-bar">
+  <span data-i18n="update_ready"></span>
+  <button class="btn btn-amber btn-sm" onclick="applyUpdate()" data-i18n="update_btn"></button>
+</div>
+
 <!-- SCANNER QR -->
 <div class="scan-modal" id="scan-modal">
   <div class="scan-inner">
@@ -290,8 +322,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 
 <div class="app">
 <div class="topbar">
-  <div class="logo"><div class="logo-icon">🗺</div>TreasureWorld</div>
+  <div class="logo"><img class="logo-icon" src="icons/icon-192.png" alt=""/>TreasureWorld</div>
   <div class="top-tools">
+    <button class="install-btn" id="install-btn" style="display:none;" onclick="installApp()">📲 <span data-i18n="install_btn"></span></button>
     <select class="lang-select" id="lang-select" onchange="setLang(this.value)" aria-label="Language"></select>
     <button class="snd-btn" id="snd-btn" onclick="toggleSound()" data-i18n-title="sound">🔊</button>
   </div>
@@ -304,6 +337,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
     <button class="tab" data-view="meschasses" onclick="showView('meschasses')" data-i18n="tab_mine"></button>
   </div>
 </div>
+
+<div class="offline-bar" id="offline-bar" data-i18n="offline"></div>
 
 <!-- ── PROFIL ── -->
 <div class="view active" id="view-profil">
@@ -1803,6 +1838,49 @@ function confetti(n){
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  APPLICATION INSTALLABLE (PWA)
+// ═══════════════════════════════════════════════════════════════
+let deferredInstall=null, userAskedUpdate=false, waitingWorker=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+// Android / Chrome / Edge : le navigateur propose l'installation, on la garde pour notre bouton
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;updateInstallUI();});
+window.addEventListener('appinstalled',()=>{deferredInstall=null;updateInstallUI();toast(t('installed'));});
+function updateInstallUI(){
+  document.getElementById('install-btn').style.display=!isStandalone()&&(deferredInstall||isIOS)?'inline-block':'none';
+}
+async function installApp(){
+  if(deferredInstall){
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall=null; updateInstallUI();
+    return;
+  }
+  if(isIOS)document.getElementById('ios-modal').classList.add('show');   // iPhone : marche à suivre
+}
+function updateOnline(){document.getElementById('offline-bar').style.display=navigator.onLine?'none':'block';}
+window.addEventListener('online',updateOnline);
+window.addEventListener('offline',updateOnline);
+// Nouvelle version du site : proposée au joueur (jamais imposée en pleine chasse)
+function showUpdateBar(worker){waitingWorker=worker;document.getElementById('update-bar').classList.add('show');}
+function applyUpdate(){
+  userAskedUpdate=true;
+  document.getElementById('update-bar').classList.remove('show');
+  if(waitingWorker)waitingWorker.postMessage('skipWaiting');else location.reload();
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBar(reg.waiting);
+    reg.addEventListener('updatefound',()=>{
+      const w=reg.installing;
+      w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdateBar(w);});
+    });
+    setInterval(()=>reg.update(),30*60*1000);
+  }).catch(e=>console.warn('Service worker non enregistré',e));
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(userAskedUpdate)location.reload();});
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  DÉMARRAGE
 // ═══════════════════════════════════════════════════════════════
 // Bouton « Simuler arrivée GPS » visible uniquement avec ?demo dans l'URL
@@ -1822,6 +1900,8 @@ async function init(){
   fillCountrySelect(document.getElementById('c-country'),defaultCountry());
   applyI18n();
   renderSoundBtn();
+  updateInstallUI();
+  updateOnline();
   document.getElementById('scan-title').textContent=t('scan_title');
   if(!window.PublicKeyCredential)document.getElementById('passkey-login-btn').style.display='none';
 

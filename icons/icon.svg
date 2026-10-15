@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="parch" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF3E1"/>
+      <stop offset="1" stop-color="#F0DDB2"/>
+    </linearGradient>
+  </defs>
+  <!-- fond parchemin (plein cadre : utilisable aussi en icône « maskable ») -->
+  <rect width="512" height="512" fill="url(#parch)"/>
+  <!-- tout le dessin tient dans la zone sûre centrale (80 %) -->
+  <g transform="translate(256 256) scale(0.8) translate(-256 -256)">
+    <!-- chemin en pointillés -->
+    <path d="M118 380 C 150 300, 230 330, 250 270 S 330 170, 372 150"
+          fill="none" stroke="#7A4A12" stroke-width="16" stroke-linecap="round" stroke-dasharray="2 34"/>
+    <!-- départ -->
+    <circle cx="118" cy="380" r="20" fill="#0F6E56"/>
+    <!-- croix du trésor -->
+    <g stroke="#C2410C" stroke-width="30" stroke-linecap="round">
+      <line x1="336" y1="114" x2="408" y2="186"/>
+      <line x1="408" y1="114" x2="336" y2="186"/>
+    </g>
+    <!-- rose des vents -->
+    <g transform="translate(150 150)">
+      <circle r="58" fill="none" stroke="#BA7517" stroke-width="7"/>
+      <path d="M0 -74 L14 -14 L0 0 L-14 -14 Z" fill="#BA7517"/>
+      <path d="M0 74 L14 14 L0 0 L-14 14 Z" fill="#7A4A12"/>
+      <path d="M74 0 L14 14 L0 0 L14 -14 Z" fill="#7A4A12"/>
+      <path d="M-74 0 L-14 14 L0 0 L-14 -14 Z" fill="#7A4A12"/>
+      <circle r="8" fill="#FBF3E1" stroke="#BA7517" stroke-width="4"/>
+    </g>
+  </g>
+</svg>

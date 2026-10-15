@@ -13,6 +13,7 @@ const LANGS = {
 
 const I18N = {
 fr: {
+  install_btn: "Installer", install_title: "Installer TreasureWorld", install_ios: "1. Touche le bouton Partager ⬆️ de Safari\n2. Choisis « Sur l’écran d’accueil » ➕\n3. Touche « Ajouter »", installed: "TreasureWorld est installé sur ton écran d’accueil !", update_ready: "Nouvelle version disponible", update_btn: "Mettre à jour", offline: "📴 Hors ligne : les cartes déjà vues restent disponibles. La validation des étapes reprendra avec le réseau.",
   translating: "Traduction de la chasse dans ta langue…", tr_auto_note: "🤖 Traduction automatique (DeepL). Relis-la, corrige si besoin et enregistre pour la valider.",
   tab_profile: 'Profil', tab_discover: 'Découvrir', tab_play: 'Jouer', tab_scores: 'Classement', tab_create: 'Créer', tab_mine: 'Mes chasses',
   sound: 'Son', loading: 'Chargement…', refresh: 'Actualiser', close: 'Fermer', cancel: 'Annuler', ok: 'OK', back: '← Retour', or: 'ou',
@@ -127,6 +128,7 @@ fr: {
 },
 
 en: {
+  install_btn: "Install", install_title: "Install TreasureWorld", install_ios: "1. Tap Safari’s Share button ⬆️\n2. Choose “Add to Home Screen” ➕\n3. Tap “Add”", installed: "TreasureWorld is now on your home screen!", update_ready: "New version available", update_btn: "Update", offline: "📴 Offline: maps you’ve already seen are still available. Step validation will resume once you’re back online.",
   translating: "Translating the hunt into your language…", tr_auto_note: "🤖 Automatic translation (DeepL). Review it, fix it if needed and save to approve it.",
   tab_profile: 'Profile', tab_discover: 'Discover', tab_play: 'Play', tab_scores: 'Leaderboard', tab_create: 'Create', tab_mine: 'My hunts',
   sound: 'Sound', loading: 'Loading…', refresh: 'Refresh', close: 'Close', cancel: 'Cancel', ok: 'OK', back: '← Back', or: 'or',
@@ -241,6 +243,7 @@ en: {
 },
 
 de: {
+  install_btn: "Installieren", install_title: "TreasureWorld installieren", install_ios: "1. Tippe in Safari auf Teilen ⬆️\n2. Wähle „Zum Home-Bildschirm“ ➕\n3. Tippe auf „Hinzufügen“", installed: "TreasureWorld ist jetzt auf deinem Home-Bildschirm!", update_ready: "Neue Version verfügbar", update_btn: "Aktualisieren", offline: "📴 Offline: bereits angesehene Karten bleiben verfügbar. Etappen werden wieder bestätigt, sobald du Netz hast.",
   translating: "Die Jagd wird in deine Sprache übersetzt…", tr_auto_note: "🤖 Automatische Übersetzung (DeepL). Lies sie durch, korrigiere sie bei Bedarf und speichere, um sie freizugeben.",
   tab_profile: 'Profil', tab_discover: 'Entdecken', tab_play: 'Spielen', tab_scores: 'Rangliste', tab_create: 'Erstellen', tab_mine: 'Meine Jagden',
   sound: 'Ton', loading: 'Wird geladen…', refresh: 'Aktualisieren', close: 'Schließen', cancel: 'Abbrechen', ok: 'OK', back: '← Zurück', or: 'oder',
@@ -355,6 +358,7 @@ de: {
 },
 
 nl: {
+  install_btn: "Installeren", install_title: "TreasureWorld installeren", install_ios: "1. Tik in Safari op Deel ⬆️\n2. Kies „Zet op beginscherm” ➕\n3. Tik op „Voeg toe”", installed: "TreasureWorld staat nu op je beginscherm!", update_ready: "Nieuwe versie beschikbaar", update_btn: "Bijwerken", offline: "📴 Offline: kaarten die je al zag blijven beschikbaar. Etappes worden weer gecontroleerd zodra je netwerk hebt.",
   translating: "De speurtocht wordt in jouw taal vertaald…", tr_auto_note: "🤖 Automatische vertaling (DeepL). Lees ze na, verbeter waar nodig en sla op om ze goed te keuren.",
   tab_profile: 'Profiel', tab_discover: 'Ontdekken', tab_play: 'Spelen', tab_scores: 'Ranglijst', tab_create: 'Maken', tab_mine: 'Mijn speurtochten',
   sound: 'Geluid', loading: 'Laden…', refresh: 'Vernieuwen', close: 'Sluiten', cancel: 'Annuleren', ok: 'OK', back: '← Terug', or: 'of',
@@ -469,6 +473,7 @@ nl: {
 },
 
 es: {
+  install_btn: "Instalar", install_title: "Instalar TreasureWorld", install_ios: "1. Toca el botón Compartir ⬆️ de Safari\n2. Elige «Añadir a pantalla de inicio» ➕\n3. Toca «Añadir»", installed: "¡TreasureWorld ya está en tu pantalla de inicio!", update_ready: "Nueva versión disponible", update_btn: "Actualizar", offline: "📴 Sin conexión: los mapas ya vistos siguen disponibles. La validación de etapas volverá con la red.",
   translating: "Traduciendo la búsqueda a tu idioma…", tr_auto_note: "🤖 Traducción automática (DeepL). Revísala, corrígela si hace falta y guárdala para validarla.",
   tab_profile: 'Perfil', tab_discover: 'Descubrir', tab_play: 'Jugar', tab_scores: 'Clasificación', tab_create: 'Crear', tab_mine: 'Mis búsquedas',
   sound: 'Sonido', loading: 'Cargando…', refresh: 'Actualizar', close: 'Cerrar', cancel: 'Cancelar', ok: 'OK', back: '← Volver', or: 'o',
@@ -583,6 +588,7 @@ es: {
 },
 
 it: {
+  install_btn: "Installa", install_title: "Installa TreasureWorld", install_ios: "1. Tocca il pulsante Condividi ⬆️ di Safari\n2. Scegli «Aggiungi alla schermata Home» ➕\n3. Tocca «Aggiungi»", installed: "TreasureWorld è ora nella tua schermata Home!", update_ready: "Nuova versione disponibile", update_btn: "Aggiorna", offline: "📴 Offline: le mappe già viste restano disponibili. La convalida delle tappe riprenderà con la rete.",
   translating: "Traduzione della caccia nella tua lingua…", tr_auto_note: "🤖 Traduzione automatica (DeepL). Rileggila, correggila se serve e salvala per approvarla.",
   tab_profile: 'Profilo', tab_discover: 'Scopri', tab_play: 'Gioca', tab_scores: 'Classifica', tab_create: 'Crea', tab_mine: 'Le mie cacce',
   sound: 'Suono', loading: 'Caricamento…', refresh: 'Aggiorna', close: 'Chiudi', cancel: 'Annulla', ok: 'OK', back: '← Indietro', or: 'oppure',
