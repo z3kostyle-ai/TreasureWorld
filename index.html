@@ -7,9 +7,10 @@
 <link rel="icon" href="https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f5fa.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="i18n.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -27,7 +28,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 .topbar{background:#fff;border-bottom:0.5px solid #e0ddd6;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
 .logo{font-size:14px;font-weight:600;color:#1a1a18;display:flex;align-items:center;gap:7px;}
 .logo-icon{width:28px;height:28px;background:var(--amber-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
-.tabs{display:flex;gap:3px;flex-wrap:wrap;}
+.top-tools{display:flex;gap:5px;align-items:center;}
+.lang-select{padding:4px 6px;font-size:12px;border:0.5px solid #e0ddd6;border-radius:6px;background:#fff;color:#1a1a18;}
+.tabs{display:flex;gap:3px;flex-wrap:wrap;width:100%;}
 .tab{padding:5px 11px;font-size:12px;border:0.5px solid #e0ddd6;border-radius:6px;cursor:pointer;background:transparent;color:#888;}
 .tab.active{background:#f1efe8;color:#1a1a18;font-weight:500;}
 .tab:hover:not(.active){background:#f8f7f4;}
@@ -35,61 +38,63 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 /* VIEWS */
 .view{display:none;}.view.active{display:block;}
 .panel{padding:14px 16px;}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;}
 .sh h2{font-size:15px;font-weight:500;}
 
 /* BUTTONS */
 .btn{padding:7px 13px;font-size:12px;border:0.5px solid #e0ddd6;border-radius:6px;cursor:pointer;background:#fff;color:#1a1a18;transition:background .12s;}
 .btn:hover{background:#f1efe8;}
+.btn:disabled{opacity:.5;cursor:default;}
 .btn-amber{background:var(--amber-bg);border-color:var(--amber-light);color:#633806;}
 .btn-amber:hover{background:var(--amber-light);}
 .btn-teal{background:var(--teal-bg);border-color:#9FE1CB;color:#085041;}
 .btn-purple{background:var(--purple-bg);border-color:#AFA9EC;color:var(--purple-dark);}
 .btn-sm{padding:4px 9px;font-size:11px;}
 .btn-full{width:100%;margin-top:6px;}
+.btn-big{padding:11px 14px;font-size:14px;}
+.link-btn{background:none;border:none;color:#888;font-size:12px;text-decoration:underline;cursor:pointer;padding:4px;}
 
 /* FORMS */
 .field{margin-bottom:10px;}
 .field label{display:block;font-size:11px;color:#888;margin-bottom:4px;}
 .field input,.field select,.field textarea{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid #e0ddd6;border-radius:6px;background:#fff;color:#1a1a18;outline:none;}
-.field input:focus,.field select:focus{border-color:#AFA9EC;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#AFA9EC;}
 .field textarea{height:55px;resize:vertical;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+@media (max-width:420px){.row3{grid-template-columns:1fr 1fr;}}
 
 /* BADGES */
 .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;}
-.b-amber{background:var(--amber-bg);color:#633806;}
-.b-teal{background:var(--teal-bg);color:#085041;}
-.b-purple{background:var(--purple-bg);color:var(--purple-dark);}
 .b-green{background:var(--green-bg);color:var(--green);}
-.b-coral{background:var(--coral-bg);color:var(--coral);}
 .b-gray{background:var(--gray-bg);color:var(--gray);}
-.pill{font-size:11px;padding:2px 7px;border-radius:99px;}
-.p-green{background:var(--green-bg);color:var(--green);}
-.p-amber{background:var(--amber-bg);color:#633806;}
-.p-gray{background:var(--gray-bg);color:var(--gray);}
-.p-purple{background:var(--purple-bg);color:var(--purple-dark);}
 
 /* TOAST */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;display:none;max-width:320px;text-align:center;}
-.toast.show{display:block;animation:fadein .2s,fadeout .3s 2.5s forwards;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:10001;display:none;max-width:320px;text-align:center;}
+.toast.show{display:block;animation:fadein .2s,fadeout .3s 2.8s forwards;}
 @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes fadeout{to{opacity:0;}}
 
-/* TROPHY POPUP */
-.trophy-popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;align-items:center;justify-content:center;}
-.trophy-popup.show{display:flex;}
+/* POPUPS */
+.trophy-popup,.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;align-items:center;justify-content:center;padding:16px;}
+.trophy-popup.show,.modal.show{display:flex;}
 .trophy-inner{background:#fff;border-radius:14px;padding:2rem 1.5rem;text-align:center;max-width:280px;border:0.5px solid #e0ddd6;}
 .trophy-big{font-size:60px;margin-bottom:10px;}
 .trophy-popup-title{font-size:16px;font-weight:600;margin-bottom:5px;}
 .trophy-popup-desc{font-size:12px;color:#888;line-height:1.6;margin-bottom:12px;}
 .xp-flash{font-size:22px;font-weight:600;color:var(--purple);margin-bottom:14px;}
+.modal-inner{background:#fff;border-radius:14px;padding:18px 16px;width:100%;max-width:340px;}
+.modal-inner h3{font-size:16px;margin-bottom:4px;}
+.modal-inner p{font-size:12px;color:#888;margin-bottom:12px;}
 
-/* PROFIL */
+/* PROFIL / COMPTE */
 .setup-wrap{max-width:380px;margin:0 auto;padding:1.5rem 1rem;}
 .setup-wrap h2{font-size:18px;font-weight:600;margin-bottom:6px;}
 .setup-wrap p{font-size:12px;color:#888;margin-bottom:1.2rem;line-height:1.6;}
+.welcome-hero{text-align:center;font-size:54px;margin-bottom:6px;}
+.sep{display:flex;align-items:center;gap:8px;color:#aaa;font-size:11px;margin:12px 0;}
+.sep::before,.sep::after{content:'';flex:1;height:0.5px;background:#e0ddd6;}
+.note{font-size:11px;color:#888;margin-top:8px;line-height:1.5;}
 .avatar-big{width:72px;height:72px;border-radius:50%;background:#f1efe8;border:2px solid #e0ddd6;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;cursor:pointer;transition:transform .15s;}
 .avatar-big:hover{transform:scale(1.05);}
 .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin:8px 0 14px;background:#f8f7f4;border-radius:10px;padding:10px;}
@@ -112,10 +117,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 .trophy-item.locked{opacity:.3;filter:grayscale(1);}
 .trophy-icon-big{font-size:26px;margin-bottom:4px;}
 .trophy-name-sm{font-size:10px;color:#888;line-height:1.3;}
+.account-box{border:0.5px solid #e0ddd6;border-radius:10px;padding:12px 13px;margin-top:14px;font-size:12px;}
+.account-box.guest{background:var(--amber-bg);border-color:var(--amber-light);}
+.account-box b{font-size:13px;}
+.account-box .acc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
 
 /* DISCOVER */
 #discover-map{width:100%;height:300px;}
-.hunt-list-scroll{max-height:240px;overflow-y:auto;}
+.disc-bar{padding:8px 13px;font-size:11px;font-weight:500;color:#888;border-bottom:0.5px solid #e0ddd6;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.disc-bar select{font-size:11px;padding:3px 6px;border:0.5px solid #e0ddd6;border-radius:6px;background:#fff;}
+.hunt-list-scroll{max-height:280px;overflow-y:auto;}
 .hunt-mini{padding:10px 14px;border-bottom:0.5px solid #e0ddd6;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:background .1s;}
 .hunt-mini:hover{background:#f8f7f4;}
 .hunt-mini.sel{background:var(--amber-bg);}
@@ -128,7 +139,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 .prog-fill{height:4px;border-radius:99px;background:var(--purple);transition:width .4s;}
 #player-map{width:100%;height:220px;}
 .step-body{padding:12px 15px;}
-.enigme-txt{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.enigme-txt{font-size:13px;line-height:1.6;margin-bottom:10px;white-space:pre-line;}
 .prox-box{background:#f8f7f4;border-radius:8px;padding:10px 13px;margin-bottom:10px;}
 .prox-row{display:flex;align-items:center;gap:10px;}
 .prox-num{font-size:24px;font-weight:600;}
@@ -193,7 +204,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 /* SON */
 .snd-btn{padding:4px 8px;font-size:13px;border:0.5px solid #e0ddd6;border-radius:6px;cursor:pointer;background:transparent;line-height:1;}
 
-/* MES CHASSES */
+/* MES CHASSES + TRADUCTIONS */
 .mh-card{border:0.5px solid #e0ddd6;border-radius:10px;padding:12px 13px;margin-bottom:10px;}
 .mh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
 .mh-name{font-size:14px;font-weight:600;}
@@ -204,14 +215,19 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 .mh-stat b{display:block;font-size:15px;}
 .mh-stat span{font-size:9px;color:#888;}
 .mh-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.tr-langs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px;}
+.tr-lang{padding:6px 10px;font-size:12px;border:0.5px solid #e0ddd6;border-radius:99px;cursor:pointer;background:#fff;}
+.tr-lang.active{background:var(--purple-bg);border-color:#AFA9EC;color:var(--purple-dark);font-weight:500;}
+.tr-step{background:#f8f7f4;border-radius:8px;padding:10px 11px;margin-bottom:9px;}
+.tr-orig{font-size:11px;color:#888;margin-bottom:6px;line-height:1.5;white-space:pre-line;}
 
-/* IMMERSION : parchemin, machine à écrire, boussole */
+/* IMMERSION */
 .parchment{background:linear-gradient(180deg,#FBF3E1 0%,#F5E6C4 100%);border:1px solid #E2CC9A;border-radius:12px;padding:16px 15px;box-shadow:inset 0 0 30px rgba(186,117,23,.12);color:#3B2A12;}
 .parchment h3{font-family:Georgia,'Times New Roman',serif;font-size:19px;margin-bottom:4px;}
 .parchment .story{font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.65;white-space:pre-line;margin:10px 0 14px;min-height:40px;}
 .intro-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;}
 .intro-meta span{background:rgba(255,255,255,.6);border-radius:99px;padding:2px 8px;}
-.enigme-txt.typing::after{content:'▍';animation:blink .8s steps(1) infinite;color:var(--amber);}
+.typing::after{content:'▍';animation:blink .8s steps(1) infinite;color:var(--amber);}
 @keyframes blink{50%{opacity:0;}}
 .step-enter{animation:stepin .45s ease-out;}
 @keyframes stepin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -234,95 +250,114 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- TROPHY POPUP -->
+<!-- TROPHÉE -->
 <div class="trophy-popup" id="trophy-popup">
   <div class="trophy-inner">
     <div class="trophy-big" id="tp-icon">🏆</div>
-    <div class="trophy-popup-title" id="tp-title">Trophée débloqué !</div>
+    <div class="trophy-popup-title" id="tp-title"></div>
     <div class="trophy-popup-desc" id="tp-desc"></div>
-    <div class="xp-flash" id="tp-xp">+0 XP</div>
-    <button class="btn btn-amber btn-full" onclick="closePopup()">Super !</button>
+    <div class="xp-flash" id="tp-xp"></div>
+    <button class="btn btn-amber btn-full" onclick="closePopup()" data-i18n="great"></button>
+  </div>
+</div>
+
+<!-- MOT DE PASSE (après confirmation d'email, ou réinitialisation) -->
+<div class="modal" id="pw-modal">
+  <div class="modal-inner">
+    <h3 id="pw-title"></h3>
+    <p data-i18n="pw_sub"></p>
+    <div class="field"><label data-i18n="password"></label><input type="password" id="pw-1" autocomplete="new-password"/></div>
+    <div class="field"><label data-i18n="password2"></label><input type="password" id="pw-2" autocomplete="new-password" onkeydown="if(event.key==='Enter')savePassword()"/></div>
+    <button class="btn btn-amber btn-full btn-big" onclick="savePassword()" data-i18n="pw_save"></button>
   </div>
 </div>
 
 <!-- SCANNER QR -->
 <div class="scan-modal" id="scan-modal">
   <div class="scan-inner">
-    <div class="scan-title" id="scan-title">Scanner un QR code</div>
+    <div class="scan-title" id="scan-title"></div>
     <div class="scan-video-wrap"><video id="scan-video" playsinline muted></video><div class="scan-frame"></div></div>
-    <div class="scan-msg" id="scan-msg">Vise le QR code avec la caméra arrière.</div>
+    <div class="scan-msg" id="scan-msg"></div>
     <div class="ans-row" style="margin-bottom:8px;">
-      <input type="text" id="scan-manual" placeholder="…ou tape le code écrit sous le QR" style="padding:8px 10px;border:0.5px solid #e0ddd6;border-radius:6px;" onkeydown="if(event.key==='Enter')submitManualScan()"/>
-      <button class="btn btn-amber btn-sm" onclick="submitManualScan()">OK</button>
+      <input type="text" id="scan-manual" data-i18n-ph="scan_manual_ph" style="padding:8px 10px;border:0.5px solid #e0ddd6;border-radius:6px;" onkeydown="if(event.key==='Enter')submitManualScan()"/>
+      <button class="btn btn-amber btn-sm" onclick="submitManualScan()" data-i18n="ok"></button>
     </div>
-    <button class="btn btn-full" onclick="closeScanner()">Fermer</button>
+    <button class="btn btn-full" onclick="closeScanner()" data-i18n="close"></button>
   </div>
 </div>
 
 <div class="app">
 <div class="topbar">
   <div class="logo"><div class="logo-icon">🗺</div>TreasureWorld</div>
+  <div class="top-tools">
+    <select class="lang-select" id="lang-select" onchange="setLang(this.value)" aria-label="Language"></select>
+    <button class="snd-btn" id="snd-btn" onclick="toggleSound()" data-i18n-title="sound">🔊</button>
+  </div>
   <div class="tabs">
-    <button class="tab active" onclick="showView('profil')">Profil</button>
-    <button class="tab" onclick="showView('decouvrir')">Découvrir</button>
-    <button class="tab" onclick="showView('jouer')">Jouer</button>
-    <button class="tab" onclick="showView('scores')">Classement</button>
-    <button class="tab" onclick="showView('creer')">Créer</button>
-    <button class="tab" onclick="showView('meschasses')">Mes chasses</button>
-    <button class="snd-btn" id="snd-btn" onclick="toggleSound()" title="Son">🔊</button>
+    <button class="tab active" data-view="profil" onclick="showView('profil')" data-i18n="tab_profile"></button>
+    <button class="tab" data-view="decouvrir" onclick="showView('decouvrir')" data-i18n="tab_discover"></button>
+    <button class="tab" data-view="jouer" onclick="showView('jouer')" data-i18n="tab_play"></button>
+    <button class="tab" data-view="scores" onclick="showView('scores')" data-i18n="tab_scores"></button>
+    <button class="tab" data-view="creer" onclick="showView('creer')" data-i18n="tab_create"></button>
+    <button class="tab" data-view="meschasses" onclick="showView('meschasses')" data-i18n="tab_mine"></button>
   </div>
 </div>
 
 <!-- ── PROFIL ── -->
 <div class="view active" id="view-profil">
-  <div id="setup-screen">
+
+  <!-- Accueil : invité / connexion / inscription -->
+  <div id="welcome-screen" class="pscreen">
     <div class="setup-wrap">
-      <h2>Crée ton profil</h2>
-      <p>Choisis un emoji pour te représenter sur la carte mondiale et entre ton pseudo d'aventurier.</p>
-      <div class="avatar-big" id="setup-avatar" onclick="toggleEmojiPicker()">🧭</div>
-      <div class="emoji-grid" id="emoji-grid" style="display:none;">
-        <div class="emo-btn sel" onclick="pickEmoji(this,'🧭')">🧭</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🦊')">🦊</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🐺')">🐺</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🦁')">🦁</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🐉')">🐉</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🦅')">🦅</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🐬')">🐬</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🦋')">🦋</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🌊')">🌊</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'⚡')">⚡</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🌙')">🌙</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🌺')">🌺</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🍄')">🍄</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🔥')">🔥</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🎭')">🎭</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🤖')">🤖</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'👻')">👻</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🧜')">🧜</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🧙')">🧙</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🏴‍☠️')">🏴‍☠️</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🚀')">🚀</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🌵')">🌵</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🦄')">🦄</div>
-        <div class="emo-btn" onclick="pickEmoji(this,'🐙')">🐙</div>
-      </div>
-      <div class="field"><label>Pseudo d'aventurier</label><input type="text" id="pseudo-input" placeholder="Ex : Zeko l'Explorateur" maxlength="30"/></div>
-      <div class="field"><label>Pays</label>
-        <select id="country-select">
-          <option>🇫🇷 France</option><option>🇧🇪 Belgique</option><option>🇨🇭 Suisse</option>
-          <option>🇨🇦 Canada</option><option>🇩🇪 Allemagne</option><option>🇪🇸 Espagne</option>
-          <option>🇮🇹 Italie</option><option>🇬🇧 Royaume-Uni</option><option>🇺🇸 États-Unis</option>
-          <option>🇯🇵 Japon</option><option>🇧🇷 Brésil</option><option>🇦🇺 Australie</option>
-        </select>
-      </div>
-      <button class="btn btn-amber btn-full" onclick="createProfile()">Enregistrer mon profil d'aventurier</button>
-      <div style="font-size:10px;color:#888;margin-top:8px;line-height:1.5;">Ton profil est lié à ce navigateur : n'efface pas ses données si tu veux le retrouver.</div>
+      <div class="welcome-hero">🗺️</div>
+      <h2 style="text-align:center;" data-i18n="welcome_title"></h2>
+      <p style="text-align:center;" data-i18n="welcome_sub"></p>
+      <button class="btn btn-amber btn-full btn-big" onclick="openSetup('guest')" data-i18n="play_guest"></button>
+      <div class="sep" data-i18n="or"></div>
+      <button class="btn btn-full" onclick="openSetup('signup')" data-i18n="signup"></button>
+      <button class="btn btn-full" onclick="showPScreen('login-screen')" data-i18n="login"></button>
     </div>
   </div>
-  <div id="profile-screen" style="display:none;">
+
+  <!-- Connexion -->
+  <div id="login-screen" class="pscreen" style="display:none;">
+    <div class="setup-wrap">
+      <button class="link-btn" onclick="showPScreen(profile.id?'profile-screen':'welcome-screen')" data-i18n="back"></button>
+      <h2 data-i18n="login_title"></h2>
+      <div class="field"><label data-i18n="email"></label><input type="email" id="login-email" autocomplete="email"/></div>
+      <div class="field"><label data-i18n="password"></label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="btn btn-amber btn-full btn-big" onclick="doLogin()" data-i18n="login"></button>
+      <div style="text-align:center;margin-top:4px;"><button class="link-btn" onclick="forgotPassword()" data-i18n="forgot"></button></div>
+      <div class="sep" data-i18n="or"></div>
+      <button class="btn btn-full" onclick="loginWithGoogle()"><span data-i18n="google"></span></button>
+      <button class="btn btn-full" id="passkey-login-btn" onclick="loginWithPasskey()">🔐 <span data-i18n="passkey_login"></span></button>
+    </div>
+  </div>
+
+  <!-- Création / modification du profil -->
+  <div id="setup-screen" class="pscreen" style="display:none;">
+    <div class="setup-wrap">
+      <button class="link-btn" id="setup-back" onclick="setupBack()" data-i18n="back"></button>
+      <h2 id="setup-title"></h2>
+      <p data-i18n="setup_sub"></p>
+      <div class="avatar-big" id="setup-avatar" onclick="toggleEmojiPicker()">🧭</div>
+      <div class="emoji-grid" id="emoji-grid" style="display:none;"></div>
+      <div class="field"><label data-i18n="pseudo"></label><input type="text" id="pseudo-input" data-i18n-ph="pseudo_ph" maxlength="30"/></div>
+      <div class="field"><label data-i18n="country"></label><select id="country-select"></select></div>
+      <div class="field" id="setup-email-wrap"><label data-i18n="email"></label><input type="email" id="setup-email" autocomplete="email"/></div>
+      <button class="btn btn-amber btn-full btn-big" id="setup-submit" onclick="submitSetup()"></button>
+      <div id="setup-google" style="display:none;">
+        <div class="sep" data-i18n="or"></div>
+        <button class="btn btn-full" onclick="loginWithGoogle()"><span data-i18n="google"></span></button>
+      </div>
+      <div class="note" id="setup-note"></div>
+    </div>
+  </div>
+
+  <!-- Profil -->
+  <div id="profile-screen" class="pscreen" style="display:none;">
     <div class="profile-header">
       <div class="p-avatar" id="p-avatar">🧭</div>
       <div style="flex:1;">
@@ -333,24 +368,25 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
         <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:10px;color:#888;">Niveau</div>
+        <div style="font-size:10px;color:#888;" data-i18n="level"></div>
         <div style="font-size:26px;font-weight:700;color:var(--purple);" id="p-level">1</div>
-        <div style="font-size:10px;color:#888;">Rang mondial</div>
+        <div style="font-size:10px;color:#888;" data-i18n="world_rank"></div>
         <div style="font-size:14px;font-weight:600;" id="p-world-rank">#—</div>
       </div>
     </div>
     <div class="panel">
       <div class="stats-row">
-        <div class="stat-box"><div class="stat-num" id="s-chasses">0</div><div class="stat-lbl">Chasses</div></div>
-        <div class="stat-box"><div class="stat-num" id="s-xp">0</div><div class="stat-lbl">XP total</div></div>
-        <div class="stat-box"><div class="stat-num" id="s-trophees">0</div><div class="stat-lbl">Trophées</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-chasses">0</div><div class="stat-lbl" data-i18n="st_hunts"></div></div>
+        <div class="stat-box"><div class="stat-num" id="s-xp">0</div><div class="stat-lbl" data-i18n="st_xp"></div></div>
+        <div class="stat-box"><div class="stat-num" id="s-trophees">0</div><div class="stat-lbl" data-i18n="st_trophies"></div></div>
       </div>
-      <div style="font-size:12px;font-weight:500;margin-bottom:8px;">Trophées & badges</div>
+      <div style="font-size:12px;font-weight:500;margin-bottom:8px;" data-i18n="trophies_title"></div>
       <div class="trophy-grid" id="trophy-grid"></div>
-      <div style="margin-top:14px;display:flex;gap:8px;">
-        <button class="btn btn-sm" onclick="editProfile()">Modifier mon profil</button>
-        <button class="btn btn-sm btn-purple" onclick="refreshProfile()">Actualiser</button>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="openSetup('edit')" data-i18n="edit_profile"></button>
+        <button class="btn btn-sm btn-purple" onclick="refreshProfile()" data-i18n="refresh"></button>
       </div>
+      <div class="account-box" id="account-box"></div>
     </div>
   </div>
 </div>
@@ -359,12 +395,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 <div class="view" id="view-decouvrir">
   <div id="discover-map"></div>
   <div style="border-top:0.5px solid #e0ddd6;">
-    <div style="padding:8px 13px;font-size:11px;font-weight:500;color:#888;border-bottom:0.5px solid #e0ddd6;display:flex;justify-content:space-between;">
-      <span id="hunt-count-label">Chargement des chasses…</span>
-      <span style="color:var(--purple);">Clique un marqueur pour centrer</span>
+    <div class="disc-bar">
+      <span id="hunt-count-label" data-i18n="loading_hunts"></span>
+      <select id="disc-country" onchange="renderHuntList()"></select>
     </div>
     <div class="hunt-list-scroll" id="hunt-list-container">
-      <div class="loading"><span class="spinner"></span>Chargement…</div>
+      <div class="loading"><span class="spinner"></span><span data-i18n="loading"></span></div>
     </div>
   </div>
 </div>
@@ -373,15 +409,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 <div class="view" id="view-jouer">
   <div id="join-screen">
     <div style="max-width:340px;margin:0 auto;text-align:center;padding:1.5rem 1rem;">
-      <div style="font-size:17px;font-weight:600;margin-bottom:6px;">Rejoindre une chasse</div>
-      <div style="font-size:12px;color:#888;margin-bottom:1.2rem;">Code organisateur ou rejoins depuis Découvrir.</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:6px;" data-i18n="join_title"></div>
+      <div style="font-size:12px;color:#888;margin-bottom:1.2rem;" data-i18n="join_sub"></div>
       <div style="display:flex;gap:7px;justify-content:center;">
         <input type="text" id="join-code" placeholder="CODE" maxlength="8" style="width:130px;text-align:center;font-size:16px;letter-spacing:3px;border:0.5px solid #e0ddd6;border-radius:6px;padding:8px;"/>
-        <button class="btn btn-amber" onclick="joinByCode()">Jouer</button>
+        <button class="btn btn-amber" onclick="joinByCode()" data-i18n="play"></button>
       </div>
       <div style="border:0.5px dashed #e0ddd6;border-radius:8px;padding:1rem;text-align:center;cursor:pointer;max-width:160px;margin:1rem auto 0;" onclick="scanEntryQR()">
         <div style="font-size:24px;margin-bottom:4px;">📷</div>
-        <div style="font-size:11px;color:#888;">Scanner QR d'entrée</div>
+        <div style="font-size:11px;color:#888;" data-i18n="scan_entry"></div>
       </div>
     </div>
   </div>
@@ -394,7 +430,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         <span id="player-emo" style="font-size:22px;">🧭</span>
-        <button class="btn btn-sm" onclick="togglePMap()">Carte</button>
+        <button class="btn btn-sm" onclick="togglePMap()" data-i18n="map"></button>
       </div>
     </div>
     <div id="player-map-wrap" style="display:none;"><div id="player-map"></div></div>
@@ -405,75 +441,80 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 <!-- ── CLASSEMENT ── -->
 <div class="view" id="view-scores">
   <div class="panel">
-    <div class="sh"><h2>Classement mondial</h2><button class="btn btn-sm" id="lb-refresh-btn" onclick="loadLeaderboard()">Actualiser</button></div>
+    <div class="sh"><h2 data-i18n="scores_title"></h2><button class="btn btn-sm" onclick="loadLeaderboard()" data-i18n="refresh"></button></div>
     <div class="lb-filters">
-      <button class="filter-btn active" onclick="setFilter('mondial',this)">Mondial</button>
-      <button class="filter-btn" onclick="setFilter('france',this)">France</button>
-      <button class="filter-btn" onclick="setFilter('semaine',this)">Cette semaine</button>
+      <button class="filter-btn active" onclick="setFilter('mondial',this)" data-i18n="f_world"></button>
+      <button class="filter-btn" onclick="setFilter('pays',this)" data-i18n="f_country"></button>
+      <button class="filter-btn" onclick="setFilter('semaine',this)" data-i18n="f_week"></button>
     </div>
-    <div style="margin-bottom:12px;">
-      <div id="lb-map"></div>
-    </div>
+    <div style="margin-bottom:12px;"><div id="lb-map"></div></div>
     <div class="lb-table">
       <div class="lb-header">
-        <span>#</span><span></span><span>Joueur</span><span style="text-align:right;">XP</span><span style="text-align:right;">Trophées</span>
+        <span>#</span><span></span><span data-i18n="col_player"></span><span style="text-align:right;" data-i18n="col_xp"></span><span style="text-align:right;" data-i18n="col_trophies"></span>
       </div>
-      <div id="lb-list"><div class="loading"><span class="spinner"></span>Chargement…</div></div>
+      <div id="lb-list"><div class="loading"><span class="spinner"></span></div></div>
     </div>
   </div>
 </div>
 
 <!-- ── MES CHASSES ── -->
 <div class="view" id="view-meschasses">
-  <div class="panel">
-    <div class="sh"><h2>Mes chasses</h2><button class="btn btn-sm" onclick="loadMyHunts()">Actualiser</button></div>
-    <div id="my-hunts"><div class="loading">Crée ton profil pour voir tes chasses.</div></div>
+  <div class="panel" id="mine-list-panel">
+    <div class="sh"><h2 data-i18n="mine_title"></h2><button class="btn btn-sm" onclick="loadMyHunts()" data-i18n="refresh"></button></div>
+    <div id="my-hunts"></div>
   </div>
+  <div class="panel" id="tr-panel" style="display:none;"></div>
 </div>
 
 <!-- ── CRÉER ── -->
 <div class="view" id="view-creer">
   <div class="panel">
-    <div class="sh"><h2>Créer une chasse</h2><button class="btn btn-amber" onclick="publishHunt()">Publier</button></div>
+    <div class="sh"><h2 data-i18n="create_title"></h2><button class="btn btn-amber" onclick="publishHunt()" data-i18n="publish"></button></div>
     <div class="row2">
-      <div class="field"><label>Nom de la chasse</label><input type="text" id="c-name" placeholder="Ex : Secrets de Kyoto…"/></div>
-      <div class="field"><label>Code joueurs</label><input type="text" id="c-code" placeholder="KYOTO1" maxlength="8"/></div>
+      <div class="field"><label data-i18n="c_name"></label><input type="text" id="c-name" data-i18n-ph="c_name_ph"/></div>
+      <div class="field"><label data-i18n="c_code"></label><input type="text" id="c-code" placeholder="MOULIN1" maxlength="8"/></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_country"></label><select id="c-country"></select></div>
+      <div class="field"><label data-i18n="c_city"></label><input type="text" id="c-city" data-i18n-ph="c_city_ph"/></div>
     </div>
     <div class="row3">
-      <div class="field"><label>Pays / ville</label><input type="text" id="c-city" placeholder="Ville, Pays"/></div>
-      <div class="field"><label>Durée (min)</label><input type="number" id="c-duration" value="45" min="10" max="240"/></div>
-      <div class="field"><label>Difficulté</label><select id="c-diff"><option>Facile</option><option selected>Moyen</option><option>Difficile</option></select></div>
+      <div class="field"><label data-i18n="c_lang"></label><select id="c-lang"></select></div>
+      <div class="field"><label data-i18n="c_duration"></label><input type="number" id="c-duration" value="45" min="10" max="240"/></div>
+      <div class="field"><label data-i18n="c_diff"></label><select id="c-diff">
+        <option value="Facile" data-i18n="diff_Facile"></option><option value="Moyen" selected data-i18n="diff_Moyen"></option><option value="Difficile" data-i18n="diff_Difficile"></option>
+      </select></div>
     </div>
-    <div class="field"><label>Description</label><textarea id="c-desc" placeholder="L'histoire de ta chasse…"></textarea></div>
-    <div style="font-size:12px;font-weight:500;margin:8px 0 5px;">Étapes GPS</div>
-    <div class="map-hint">Clique sur la carte satellite pour épingler un point GPS exact. L'énigme se déclenche quand le joueur arrive à cet endroit.</div>
+    <div class="field"><label data-i18n="c_desc"></label><textarea id="c-desc" data-i18n-ph="c_desc_ph"></textarea></div>
+    <div style="font-size:12px;font-weight:500;margin:8px 0 5px;" data-i18n="c_steps"></div>
+    <div class="map-hint" data-i18n="c_map_hint"></div>
     <div id="creator-map"></div>
     <div class="c-steps" id="c-steps-list"></div>
     <div class="print-box" id="print-box">
-      <span id="print-box-txt">QR codes de ta chasse prêts à imprimer.</span>
-      <button class="btn btn-purple btn-sm" onclick="printQRCodes()">Imprimer les QR</button>
+      <span id="print-box-txt"></span>
+      <button class="btn btn-purple btn-sm" onclick="printQRCodes()" data-i18n="print_btn"></button>
     </div>
     <div class="add-form" id="c-add-form" style="display:none;">
       <div class="coord-info" id="c-coord-info">GPS : —</div>
-      <div class="field"><label>Texte de l'énigme</label><input type="text" id="c-enigme" placeholder="Décris l'énigme…"/></div>
+      <div class="field"><label data-i18n="c_text"></label><input type="text" id="c-enigme" data-i18n-ph="c_text_ph"/></div>
       <div class="row2">
-        <div class="field"><label>Type</label>
+        <div class="field"><label data-i18n="c_type"></label>
           <select id="c-type" onchange="toggleCAF()">
-            <option value="enigme">Énigme texte</option>
-            <option value="qr">QR code à scanner</option>
-            <option value="prox">Arrivée au point suffit</option>
+            <option value="enigme" data-i18n="ct_enigme"></option>
+            <option value="qr" data-i18n="ct_qr"></option>
+            <option value="prox" data-i18n="ct_prox"></option>
           </select>
         </div>
-        <div class="field" id="c-ans-wrap"><label id="c-ans-lbl">Réponse attendue</label><input type="text" id="c-ans" placeholder="Réponse…"/></div>
+        <div class="field" id="c-ans-wrap"><label id="c-ans-lbl" data-i18n="c_answer"></label><input type="text" id="c-ans" data-i18n-ph="c_answer_ph"/></div>
       </div>
-      <div class="field"><label>Indice</label><input type="text" id="c-hint" placeholder="Un indice si le joueur est bloqué…"/></div>
+      <div class="field"><label data-i18n="c_hint"></label><input type="text" id="c-hint" data-i18n-ph="c_hint_ph"/></div>
       <div class="field">
-        <label>Rayon de déclenchement : <span id="c-rad-lbl">20</span> m</label>
+        <label><span data-i18n="c_radius"></span> : <span id="c-rad-lbl">20</span> m</label>
         <input type="range" min="5" max="80" value="20" step="5" id="c-rad" oninput="document.getElementById('c-rad-lbl').textContent=this.value" style="width:100%;"/>
       </div>
       <div style="display:flex;gap:7px;">
-        <button class="btn btn-teal" onclick="confirmCStep()">Valider l'étape</button>
-        <button class="btn" onclick="cancelCStep()">Annuler</button>
+        <button class="btn btn-teal" onclick="confirmCStep()" data-i18n="c_validate"></button>
+        <button class="btn" onclick="cancelCStep()" data-i18n="cancel"></button>
       </div>
     </div>
   </div>
@@ -483,86 +524,133 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  ⚙️  CONFIGURATION SUPABASE
-//  Remplace ces deux valeurs par celles de ton nouveau projet
 // ═══════════════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://zrdxutgoxtpmeymgkeqy.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyZHh1dGdveHRwbWV5bWdrZXF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODU4NjQsImV4cCI6MjA5MjQ2MTg2NH0.eBOTQFIgCf6z-ax3H15bTXfnvVKJsZEeBNyphQUKL5g';
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// Adresse de retour après un email de confirmation ou une connexion Google
+const SITE_URL = location.origin + location.pathname;
+
+// ═══════════════════════════════════════════════════════════════
+//  LANGUES
+// ═══════════════════════════════════════════════════════════════
+function detectLang(){
+  try{const s=localStorage.getItem('tw_lang');if(s&&I18N[s])return s;}catch(e){}
+  for(const l of (navigator.languages||[navigator.language||'fr'])){
+    const c=String(l).slice(0,2).toLowerCase();
+    if(I18N[c])return c;
+  }
+  return 'en';
+}
+let LANG=detectLang();
+function t(key,vars){
+  let s=I18N[LANG]?.[key]??I18N.en[key]??I18N.fr[key]??key;
+  if(typeof s!=='string')return s;
+  if(vars)for(const k in vars)s=s.split('{'+k+'}').join(vars[k]);
+  return s;
+}
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>el.placeholder=t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>el.title=t(el.dataset.i18nTitle));
+}
+function fillLangSelect(sel,selected){
+  sel.innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}"${k===selected?' selected':''}>${v.flag} ${v.name}</option>`).join('');
+}
+async function setLang(l){
+  if(!I18N[l])return;
+  LANG=l;
+  try{localStorage.setItem('tw_lang',l);}catch(e){}
+  document.getElementById('lang-select').value=l;
+  applyI18n();
+  fillCountrySelect(document.getElementById('country-select'),document.getElementById('country-select').value);
+  fillCountrySelect(document.getElementById('c-country'),document.getElementById('c-country').value);
+  document.getElementById('scan-title').textContent=t('scan_title');
+  refreshSetupTexts();
+  if(profile.id){renderProfile();renderAccountBox();}
+  if(huntsCache.length){await decorateHunts();renderHuntList();}
+  if(document.getElementById('view-scores').classList.contains('active'))loadLeaderboard();
+  if(document.getElementById('view-meschasses').classList.contains('active')&&!trState)loadMyHunts();
+  if(currentHunt&&!gameFinished){
+    await loadHuntTranslations(currentHunt);
+    document.getElementById('g-title').textContent=huntName(currentHunt);
+    if(gameStarted)renderStep();else renderIntro();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PAYS (drapeau + nom dans la langue du joueur)
+// ═══════════════════════════════════════════════════════════════
+function flagOf(code){return String(code||'').toUpperCase().replace(/[A-Z]/g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));}
+function codeOfFlag(str){
+  const cps=Array.from(String(str||'')).slice(0,2).map(c=>c.codePointAt(0));
+  if(cps.length===2&&cps.every(c=>c>=0x1F1E6&&c<=0x1F1FF))return String.fromCharCode(...cps.map(c=>c-127397));
+  return null;
+}
+const _regionNames={};
+function countryName(code,lang=LANG){
+  try{return (_regionNames[lang]||(_regionNames[lang]=new Intl.DisplayNames([lang],{type:'region'}))).of(code);}catch(e){return code;}
+}
+function countryLabel(stored){const c=codeOfFlag(stored);return c?flagOf(c)+' '+countryName(c):(stored||'');}
+function countryStored(code,lang=LANG){return flagOf(code)+' '+countryName(code,lang);}
+function fillCountrySelect(sel,selected){
+  const opt=c=>`<option value="${c}"${c===selected?' selected':''}>${flagOf(c)} ${esc(countryName(c))}</option>`;
+  const rest=COUNTRY_CODES.filter(c=>!COUNTRY_TOP.includes(c)).sort((a,b)=>countryName(a).localeCompare(countryName(b),LANG));
+  sel.innerHTML=COUNTRY_TOP.map(opt).join('')+'<option disabled>──────────</option>'+rest.map(opt).join('');
+}
+function defaultCountry(){
+  const reg=(navigator.language||'').split('-')[1];
+  if(reg&&COUNTRY_CODES.includes(reg.toUpperCase()))return reg.toUpperCase();
+  return {fr:'FR',de:'DE',nl:'NL',es:'ES',it:'IT',en:'GB'}[LANG]||'FR';
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  TROPHÉES
 // ═══════════════════════════════════════════════════════════════
-const TROPHIES = [
-  {id:'first',   icon:'🎖', name:'Premier pas',      desc:'Terminer ta première chasse',      xp:50,  cond:s=>s.chasses>=1},
-  {id:'explorer',icon:'🧭', name:'Explorateur',       desc:'Terminer 3 chasses',               xp:100, cond:s=>s.chasses>=3},
-  {id:'globe',   icon:'🌍', name:'Citoyen du monde',  desc:'Jouer dans 2 pays différents',     xp:150, cond:s=>s.countries>=2},
-  {id:'legend',  icon:'🏆', name:'Légende',           desc:'Atteindre 1000 XP',                xp:200, cond:s=>s.xp>=1000},
-  {id:'creator', icon:'✨', name:'Créateur',           desc:'Publier une chasse',               xp:120, cond:s=>s.created>=1},
-  {id:'speedy',  icon:'⚡', name:'Flash',              desc:'Finir une chasse en moins de 10 min',xp:80,cond:s=>s.fast>=1},
-  {id:'pirate',  icon:'🏴‍☠️',name:'Corsaire',          desc:'Jouer dans 3 pays différents',     xp:250, cond:s=>s.countries>=3},
-  {id:'collector',icon:'💎',name:'Collectionneur',    desc:'Obtenir 4 trophées',               xp:300, cond:s=>s.trophies>=4},
+const TROPHIES=[
+  {id:'first',icon:'🎖',xp:50},{id:'explorer',icon:'🧭',xp:100},{id:'globe',icon:'🌍',xp:150},{id:'legend',icon:'🏆',xp:200},
+  {id:'creator',icon:'✨',xp:120},{id:'speedy',icon:'⚡',xp:80},{id:'pirate',icon:'🏴‍☠️',xp:250},{id:'collector',icon:'💎',xp:300},
 ];
+const trophyName=id=>(t('trophies')[id]||[id])[0];
+const trophyDesc=id=>(t('trophies')[id]||['',''])[1];
+const EMOJIS=['🧭','🦊','🐺','🦁','🐉','🦅','🐬','🦋','🌊','⚡','🌙','🌺','🍄','🔥','🎭','🤖','👻','🧜','🧙','🏴‍☠️','🚀','🌵','🦄','🐙','🚐','🏕️','🚲','🥾'];
 
 // ═══════════════════════════════════════════════════════════════
-//  STATE
+//  ÉTAT
 // ═══════════════════════════════════════════════════════════════
-let profile = {
-  id:null, emoji:'🧭', pseudo:'', country:'🇫🇷 France',
-  xp:0, chasses:0, countries:0, created:0, fast:0, trophies:0,
-  unlockedTrophies:[], countriesPlayed:[],
-};
-let selectedEmoji = '🧭';
-let huntsCache = [];
-let currentHunt = null;
-let currentStep = 0;
-let sessionId = null;
-let sessionStart = null;
-let discoverMap=null, playerMap=null, lbMap=null, creatorMap=null;
+const EMPTY_PROFILE={id:null,emoji:'🧭',pseudo:'',country:'',countryCode:'FR',xp:0,chasses:0,countries:0,created:0,trophies:0,unlockedTrophies:[],countriesPlayed:[]};
+let profile={...EMPTY_PROFILE};
+let authUser=null;
+let selectedEmoji='🧭';
+let setupMode='guest';
+let huntsCache=[];
+let currentHunt=null, currentStep=0, sessionId=null, sessionStart=null, gameStarted=false, gameFinished=false;
+let discoverMap=null, discLayer=null, playerMap=null, lbMap=null, creatorMap=null;
 let playerMarker=null, watchId=null, lastPos=null, lastGpsSync=0, lbLayer=null;
 let cPending=null, cMarkers=[], cCircles=[], cStepsData=[];
-let currentFilter = 'mondial';
+let currentFilter='mondial';
 const STEP_COLS='id,hunt_id,step_order,lat,lng,step_type,text,hint,trigger_radius';
 const GPS_SYNC_MS=15000;
 
 // ═══════════════════════════════════════════════════════════════
-//  UTILS
+//  OUTILS
 // ═══════════════════════════════════════════════════════════════
-function esc(v){
-  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-// Compte anonyme Supabase : créé une fois, mémorisé par le navigateur
-async function ensureAuth(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(session) return session.user;
-  const {data,error}=await sb.auth.signInAnonymously();
-  if(error){toast('Connexion impossible : '+error.message);throw error;}
-  return data.user;
-}
-const ERR_MSG={
-  pseudo_pris:'Ce pseudo est déjà pris.',pseudo_invalide:'Pseudo invalide.',
-  profil_requis:'Crée ton profil d\'abord !',chasse_introuvable:'Chasse introuvable.',
-  session_invalide:'Session de jeu expirée, relance la chasse.',position_requise:'Position GPS requise.',
-};
-function errMsg(e){
-  const k=Object.keys(ERR_MSG).find(k=>(e?.message||'').includes(k));
-  return k?ERR_MSG[k]:'Erreur : '+(e?.message||e);
-}
-function toast(msg, dur=2800){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show';
-  setTimeout(()=>t.className='toast',dur);
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(msg,dur=3100){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast';
+  void el.offsetWidth; el.className='toast show';
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.className='toast',dur);
 }
 function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   document.getElementById('view-'+name).classList.add('active');
-  const labels={profil:'Profil',decouvrir:'Découvrir',jouer:'Jouer',scores:'Classement',creer:'Créer',meschasses:'Mes chasses'};
-  document.querySelectorAll('.tab').forEach(t=>{if(t.textContent===labels[name])t.classList.add('active');});
-  if(name==='meschasses') loadMyHunts();
-  if(name==='decouvrir'){setTimeout(()=>{initDiscoverMap();loadHunts();},80);}
-  if(name==='scores'){setTimeout(()=>{initLbMap();loadLeaderboard();},80);}
-  if(name==='creer'){setTimeout(initCreatorMap,80);}
+  if(name==='meschasses'){closeTranslations();}
+  if(name==='decouvrir')setTimeout(()=>{initDiscoverMap();loadHunts();},80);
+  if(name==='scores')setTimeout(()=>{initLbMap();loadLeaderboard();},80);
+  if(name==='creer')setTimeout(initCreatorMap,80);
 }
 function haversine(la1,ln1,la2,ln2){
   const R=6371000,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180;
@@ -570,15 +658,80 @@ function haversine(la1,ln1,la2,ln2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 function getRank(xp){
-  if(xp>=2000)return{label:'Légende',bg:'#FAEEDA',col:'#633806',icon:'🏆'};
-  if(xp>=1000)return{label:'Maître',bg:'#EEEDFE',col:'#26215C',icon:'💎'};
-  if(xp>=400) return{label:'Explorateur',bg:'#E1F5EE',col:'#085041',icon:'🧭'};
-  return{label:'Novice',bg:'#F1EFE8',col:'#444441',icon:'🎖'};
+  if(xp>=2000)return{label:t('rank_legend'),bg:'#FAEEDA',col:'#633806',icon:'🏆'};
+  if(xp>=1000)return{label:t('rank_master'),bg:'#EEEDFE',col:'#26215C',icon:'💎'};
+  if(xp>=400) return{label:t('rank_explorer'),bg:'#E1F5EE',col:'#085041',icon:'🧭'};
+  return{label:t('rank_novice'),bg:'#F1EFE8',col:'#444441',icon:'🎖'};
+}
+const ERR_KEYS={pseudo_pris:'e_pseudo_taken',pseudo_invalide:'e_pseudo_invalid',profil_requis:'t_need_profile',
+  chasse_introuvable:'e_hunt_unknown',session_invalide:'e_session',position_requise:'e_position'};
+function errMsg(e){
+  const m=e?.message||String(e||'');
+  const k=Object.keys(ERR_KEYS).find(k=>m.includes(k));
+  return k?t(ERR_KEYS[k]):t('t_error',{msg:m});
+}
+// Erreurs des fonctions de connexion Supabase → message clair
+function authErrMsg(e){
+  const code=e?.code||'', m=(e?.message||'').toLowerCase();
+  if(code==='invalid_credentials'||m.includes('invalid login'))return t('t_bad_login');
+  if(code==='email_not_confirmed')return t('t_email_unconfirmed');
+  if(code==='email_exists'||code==='user_already_exists'||m.includes('already been registered'))return t('t_email_exists');
+  if(code.startsWith('over_')||m.includes('rate limit'))return t('t_too_many');
+  if(code==='weak_password')return t('t_pw_short');
+  if(m.includes('not enabled')||m.includes('disabled')||code==='provider_disabled'||code.includes('disabled'))return t('t_feature_off');
+  return t('t_error',{msg:e?.message||e});
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  PROFIL
+//  COMPTE : invité, email + mot de passe, Google, empreinte / Face ID
 // ═══════════════════════════════════════════════════════════════
+const isGuest=()=>!authUser||!!authUser.is_anonymous;
+async function ensureAuth(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){authUser=session.user;return session.user;}
+  const {data,error}=await sb.auth.signInAnonymously();
+  if(error){toast(t('e_connect',{msg:error.message}));throw error;}
+  authUser=data.user;
+  return data.user;
+}
+async function refreshAuthUser(){
+  const {data}=await sb.auth.getUser();
+  authUser=data?.user||authUser;
+  return authUser;
+}
+function showPScreen(id){
+  document.querySelectorAll('#view-profil .pscreen').forEach(s=>s.style.display=s.id===id?'block':'none');
+  window.scrollTo(0,0);
+}
+
+// Écran de profil : mode invité, inscription, modification, ou compte sans profil
+function openSetup(mode){
+  setupMode=mode;
+  if(mode==='edit'){
+    document.getElementById('pseudo-input').value=profile.pseudo;
+    selectedEmoji=profile.emoji;
+    fillCountrySelect(document.getElementById('country-select'),profile.countryCode);
+  }else{
+    if(!document.getElementById('pseudo-input').value) fillCountrySelect(document.getElementById('country-select'),defaultCountry());
+  }
+  document.getElementById('setup-avatar').textContent=selectedEmoji;
+  renderEmojiGrid();
+  refreshSetupTexts();
+  showPScreen('setup-screen');
+}
+function refreshSetupTexts(){
+  const m=setupMode;
+  document.getElementById('setup-title').textContent=m==='signup'?t('signup_title'):t('setup_title');
+  document.getElementById('setup-email-wrap').style.display=m==='signup'?'block':'none';
+  document.getElementById('setup-google').style.display=m==='signup'?'block':'none';
+  document.getElementById('setup-submit').textContent=m==='signup'?t('create_account_btn'):m==='edit'?t('pw_save'):t('save_profile');
+  document.getElementById('setup-note').textContent=m==='signup'?t('signup_note'):m==='guest'?t('guest_note'):'';
+  document.getElementById('setup-back').style.display=m==='complete'?'none':'inline-block';
+}
+function setupBack(){showPScreen(profile.id?'profile-screen':'welcome-screen');}
+function renderEmojiGrid(){
+  document.getElementById('emoji-grid').innerHTML=EMOJIS.map(e=>`<div class="emo-btn${e===selectedEmoji?' sel':''}" onclick="pickEmoji(this,'${e}')">${e}</div>`).join('');
+}
 function toggleEmojiPicker(){
   const g=document.getElementById('emoji-grid');
   g.style.display=g.style.display==='none'?'grid':'none';
@@ -588,178 +741,337 @@ function pickEmoji(el,e){
   el.classList.add('sel'); selectedEmoji=e;
   document.getElementById('setup-avatar').textContent=e;
 }
-async function createProfile(){
+async function submitSetup(){
   const pseudo=document.getElementById('pseudo-input').value.trim();
-  if(!pseudo){toast('Entre un pseudo !');return;}
-  profile.emoji=selectedEmoji;
-  profile.pseudo=pseudo;
-  profile.country=document.getElementById('country-select').value;
-  try{await ensureAuth();}catch(e){return;}
-  const isNew=!profile.id;
-  const {data,error}=await sb.rpc('tw_save_profile',{p_pseudo:pseudo,p_emoji:selectedEmoji,p_country:profile.country});
-  if(error){toast(errMsg(error));console.error(error);return;}
-  applyPlayerRow(data);
-  await loadTrophies();
-  showProfileScreen();
-  toast(isNew?'Bienvenue '+pseudo+' '+selectedEmoji:'Profil mis à jour !');
+  if(!pseudo){toast(t('t_enter_pseudo'));return;}
+  const code=document.getElementById('country-select').value;
+  const email=document.getElementById('setup-email').value.trim();
+  if(setupMode==='signup'&&!email){toast(t('t_need_email'));return;}
+  const btn=document.getElementById('setup-submit'); btn.disabled=true;
+  try{
+    await ensureAuth();
+    const isNew=!profile.id;
+    const {data,error}=await sb.rpc('tw_save_profile',{p_pseudo:pseudo,p_emoji:selectedEmoji,p_country:countryStored(code)});
+    if(error){toast(errMsg(error));return;}
+    applyPlayerRow(data);
+    await loadTrophies();
+    showProfileScreen();
+    if(setupMode==='signup') await linkEmail(email);
+    else toast(isNew?t('t_welcome',{name:pseudo,emoji:selectedEmoji}):t('t_profile_updated'));
+  }catch(e){console.error(e);}
+  finally{btn.disabled=false;}
 }
+// Ajoute un email au compte invité : même compte, donc la progression est conservée
+async function linkEmail(email){
+  if(!email){toast(t('t_need_email'));return;}
+  const {error}=await sb.auth.updateUser({email},{emailRedirectTo:SITE_URL});
+  if(error){toast(authErrMsg(error));return;}
+  await refreshAuthUser();
+  renderAccountBox();
+  toast(t('t_check_mail',{email}),6000);
+}
+// Avant de quitter un compte invité pour un compte existant : jeton de fusion
+async function prepareHandoff(){
+  if(!isGuest()||!profile.id)return null;
+  const {data}=await sb.rpc('tw_guest_handoff');
+  if(data){try{localStorage.setItem('tw_merge',data);}catch(e){}}
+  return data;
+}
+async function afterLogin(){
+  let token=null;
+  try{token=localStorage.getItem('tw_merge');localStorage.removeItem('tw_merge');}catch(e){}
+  await refreshAuthUser();
+  if(token&&!isGuest()){
+    const {data}=await sb.rpc('tw_merge_guest',{p_token:token});
+    if(data?.merged) setTimeout(()=>toast(t('t_merged'),5000),1500);
+  }
+  profile={...EMPTY_PROFILE};
+  await restoreProfile();
+}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-pw').value;
+  if(!email||!password){toast(t('t_need_email'));return;}
+  await prepareHandoff();
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){toast(authErrMsg(error));return;}
+  document.getElementById('login-pw').value='';
+  toast(t('t_logged_in'));
+  await afterLogin();
+}
+async function loginWithGoogle(){
+  await prepareHandoff();
+  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:SITE_URL}});
+  if(error)toast(authErrMsg(error));
+}
+async function linkGoogle(){
+  const {error}=await sb.auth.linkIdentity({provider:'google',options:{redirectTo:SITE_URL}});
+  if(error)toast(authErrMsg(error));
+}
+async function loginWithPasskey(){
+  if(!window.PublicKeyCredential){toast(t('t_passkey_unsupported'));return;}
+  await prepareHandoff();
+  const {error}=await sb.auth.signInWithPasskey();
+  if(error){if(error.name!=='NotAllowedError')toast(authErrMsg(error));return;}
+  toast(t('t_logged_in'));
+  await afterLogin();
+}
+async function addPasskey(){
+  if(!window.PublicKeyCredential){toast(t('t_passkey_unsupported'));return;}
+  const {error}=await sb.auth.registerPasskey();
+  if(error){if(error.name!=='NotAllowedError')toast(authErrMsg(error));return;}
+  try{localStorage.setItem('tw_passkey_'+authUser.id,'1');}catch(e){}
+  toast(t('t_passkey_added'));
+  renderAccountBox();
+}
+async function forgotPassword(){
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){toast(t('t_need_email'));return;}
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:SITE_URL});
+  if(error){toast(authErrMsg(error));return;}
+  toast(t('t_reset_sent'),5000);
+}
+let pwMode='new';
+function openPwModal(mode){
+  pwMode=mode;
+  document.getElementById('pw-title').textContent=mode==='reset'?t('pw_title_reset'):t('pw_title_new');
+  document.getElementById('pw-1').value='';document.getElementById('pw-2').value='';
+  document.getElementById('pw-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('pw-1').focus(),100);
+}
+async function savePassword(){
+  const a=document.getElementById('pw-1').value, b=document.getElementById('pw-2').value;
+  if(a.length<8){toast(t('t_pw_short'));return;}
+  if(a!==b){toast(t('t_pw_mismatch'));return;}
+  const {error}=await sb.auth.updateUser({password:a,data:{tw_pw:true}});
+  if(error&&error.code!=='same_password'){toast(authErrMsg(error));return;}
+  document.getElementById('pw-modal').classList.remove('show');
+  toast(t('t_pw_saved'));
+  await refreshAuthUser();
+  renderAccountBox();
+}
+// Compte email confirmé mais sans mot de passe choisi → on le demande
+function maybeAskPassword(){
+  const u=authUser;
+  if(!u||u.is_anonymous||!u.email)return;
+  const hasEmailIdentity=(u.identities||[]).some(i=>i.provider==='email');
+  if(hasEmailIdentity&&!u.user_metadata?.tw_pw) openPwModal('new');
+}
+async function logout(){
+  stopGPS();
+  await sb.auth.signOut();
+  authUser=null; profile={...EMPTY_PROFILE};
+  currentHunt=null; sessionId=null;
+  document.getElementById('pseudo-input').value='';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('join-screen').style.display='block';
+  showPScreen('welcome-screen');
+  toast(t('t_logged_out'));
+}
+function renderAccountBox(){
+  const box=document.getElementById('account-box');
+  if(!box)return;
+  const u=authUser;
+  if(isGuest()){
+    box.className='account-box guest';
+    if(u?.new_email){
+      box.innerHTML=`<div>📧 ${esc(t('acc_pending',{email:u.new_email}))}</div>
+        <div class="acc-actions"><button class="btn btn-sm" onclick="linkEmail('${esc(u.new_email)}')">${esc(t('acc_resend'))}</button></div>`;
+      return;
+    }
+    box.innerHTML=`<b>👤 ${esc(t('acc_guest_title'))}</b><div style="margin-top:4px;color:#633806;">${esc(t('acc_guest_txt'))}</div>
+      <div class="field" style="margin-top:9px;margin-bottom:6px;"><input type="email" id="acc-email" placeholder="${esc(t('email'))}" autocomplete="email"/></div>
+      <div class="acc-actions">
+        <button class="btn btn-amber btn-sm" onclick="linkEmail(document.getElementById('acc-email').value.trim())">${esc(t('acc_secure'))}</button>
+        <button class="btn btn-sm" onclick="linkGoogle()">${esc(t('acc_google_link'))}</button>
+        <button class="btn btn-sm" onclick="showPScreen('login-screen')">${esc(t('acc_login_other'))}</button>
+      </div>`;
+    return;
+  }
+  box.className='account-box';
+  let pk=false; try{pk=localStorage.getItem('tw_passkey_'+u.id)==='1';}catch(e){}
+  box.innerHTML=`<div>✅ ${esc(t('acc_logged',{email:u.email||u.user_metadata?.email||'Google'}))}</div>
+    <div class="acc-actions">
+      ${window.PublicKeyCredential?(pk?`<span class="badge b-green">${esc(t('acc_passkey_on'))}</span>`:`<button class="btn btn-purple btn-sm" onclick="addPasskey()">🔐 ${esc(t('acc_passkey_add'))}</button>`):''}
+      <button class="btn btn-sm" onclick="logout()">${esc(t('logout'))}</button>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PROFIL
+// ═══════════════════════════════════════════════════════════════
 function applyPlayerRow(d){
-  profile.id=d.id; profile.pseudo=d.pseudo; profile.emoji=d.emoji||profile.emoji; profile.country=d.country||profile.country;
+  profile.id=d.id; profile.pseudo=d.pseudo; profile.emoji=d.emoji||profile.emoji; profile.country=d.country||'';
+  profile.countryCode=codeOfFlag(d.country)||profile.countryCode;
   profile.xp=d.xp||0; profile.chasses=d.chasses_done||0; profile.created=d.created_hunts||0;
   profile.countriesPlayed=Array.isArray(d.countries_played)?d.countries_played:[];
   profile.countries=profile.countriesPlayed.length;
+  selectedEmoji=profile.emoji;
 }
 async function loadTrophies(){
   const {data:td}=await sb.from('player_trophies').select('trophy_id').eq('player_id',profile.id);
-  if(td){profile.unlockedTrophies=td.map(t=>t.trophy_id);profile.trophies=profile.unlockedTrophies.length;}
+  if(td){profile.unlockedTrophies=td.map(x=>x.trophy_id);profile.trophies=profile.unlockedTrophies.length;}
 }
-function showProfileScreen(){
-  document.getElementById('setup-screen').style.display='none';
-  document.getElementById('profile-screen').style.display='block';
-  renderProfile();
-}
-// Au démarrage : retrouve le profil lié au compte anonyme du navigateur
+function showProfileScreen(){showPScreen('profile-screen');renderProfile();renderAccountBox();}
+// Au démarrage / après connexion : profil lié au compte courant
 async function restoreProfile(){
   const {data:{session}}=await sb.auth.getSession();
-  if(!session)return;
+  authUser=session?.user||null;
+  if(!session){showPScreen('welcome-screen');return;}
   const {data}=await sb.from('players').select('*').eq('auth_id',session.user.id).maybeSingle();
-  if(!data)return;
-  applyPlayerRow(data);
-  await loadTrophies();
-  showProfileScreen();
+  if(data){applyPlayerRow(data);await loadTrophies();showProfileScreen();return;}
+  if(isGuest())showPScreen('welcome-screen');
+  else openSetup('complete');           // compte (email / Google) sans profil encore
 }
-// Recharge le profil depuis le serveur (seule source de vérité pour l'XP)
 async function refreshProfile(silent){
-  if(!profile.id){if(!silent)toast('Crée d\'abord ton profil.');return;}
+  if(!profile.id){if(!silent)toast(t('t_need_profile'));return;}
   const {data,error}=await sb.from('players').select('*').eq('id',profile.id).single();
-  if(error){if(!silent)toast('Erreur : '+error.message);return;}
+  if(error){if(!silent)toast(t('t_error',{msg:error.message}));return;}
   applyPlayerRow(data);
   await loadTrophies();
   renderProfile();
-  if(!silent)toast('Profil à jour !');
-}
-// Modifier le profil (même compte) : pré-remplit l'écran de création
-function editProfile(){
-  document.getElementById('pseudo-input').value=profile.pseudo;
-  document.getElementById('country-select').value=profile.country;
-  selectedEmoji=profile.emoji;
-  document.getElementById('setup-avatar').textContent=profile.emoji;
-  document.getElementById('profile-screen').style.display='none';
-  document.getElementById('setup-screen').style.display='block';
+  if(!silent)toast(t('t_profile_updated'));
 }
 function renderProfile(){
   const p=profile;
   document.getElementById('p-avatar').textContent=p.emoji;
   document.getElementById('p-name').textContent=p.pseudo;
-  document.getElementById('p-country').textContent=p.country;
+  document.getElementById('p-country').textContent=countryLabel(p.country);
   const rank=getRank(p.xp);
-  document.getElementById('p-rank-badge').innerHTML=`<span style="background:${rank.bg};color:${rank.col};padding:2px 9px;border-radius:99px;font-size:10px;font-weight:500;">${rank.icon} ${rank.label}</span>`;
+  document.getElementById('p-rank-badge').innerHTML=`<span style="background:${rank.bg};color:${rank.col};padding:2px 9px;border-radius:99px;font-size:10px;font-weight:500;">${rank.icon} ${esc(rank.label)}</span>`;
   const level=Math.floor(p.xp/500)+1;
   document.getElementById('p-level').textContent=level;
-  const xpInLevel=p.xp%500;
-  document.getElementById('xp-bar').style.width=(xpInLevel/500*100)+'%';
-  document.getElementById('xp-label').textContent=p.xp+' XP — Niveau '+level;
+  document.getElementById('xp-bar').style.width=(p.xp%500/500*100)+'%';
+  document.getElementById('xp-label').textContent=t('xp_level',{xp:p.xp,l:level});
   document.getElementById('s-chasses').textContent=p.chasses;
   document.getElementById('s-xp').textContent=p.xp;
   document.getElementById('s-trophees').textContent=p.unlockedTrophies.length;
-  const grid=document.getElementById('trophy-grid');
-  grid.innerHTML=TROPHIES.map(t=>{
-    const u=p.unlockedTrophies.includes(t.id);
-    return`<div class="trophy-item${u?'':' locked'}" title="${esc(t.desc)}"><div class="trophy-icon-big">${t.icon}</div><div class="trophy-name-sm">${t.name}</div></div>`;
+  document.getElementById('trophy-grid').innerHTML=TROPHIES.map(tr=>{
+    const u=p.unlockedTrophies.includes(tr.id);
+    return`<div class="trophy-item${u?'':' locked'}" title="${esc(trophyDesc(tr.id))}"><div class="trophy-icon-big">${tr.icon}</div><div class="trophy-name-sm">${esc(trophyName(tr.id))}</div></div>`;
   }).join('');
 }
-// Les trophées sont attribués par le serveur ; on affiche ceux qu'il renvoie, un par un
+// Trophées attribués par le serveur : affichés un par un
 let trophyQueue=[];
 function announceTrophies(ids){
-  (ids||[]).forEach(id=>{const t=TROPHIES.find(x=>x.id===id);if(t)trophyQueue.push(t);});
-  if(!document.getElementById('trophy-popup').classList.contains('show')) nextTrophyPopup();
+  (ids||[]).forEach(id=>{const tr=TROPHIES.find(x=>x.id===id);if(tr)trophyQueue.push(tr);});
+  if(!document.getElementById('trophy-popup').classList.contains('show'))nextTrophyPopup();
 }
-function nextTrophyPopup(){
-  const t=trophyQueue.shift();
-  if(t) showTrophyPopup(t);
-}
-function showTrophyPopup(t){
-  document.getElementById('tp-icon').textContent=t.icon;
-  document.getElementById('tp-title').textContent='Trophée débloqué : '+t.name;
-  document.getElementById('tp-desc').textContent=t.desc;
-  document.getElementById('tp-xp').textContent='+'+t.xp+' XP bonus';
+function nextTrophyPopup(){const tr=trophyQueue.shift();if(tr)showTrophyPopup(tr);}
+function showTrophyPopup(tr){
+  document.getElementById('tp-icon').textContent=tr.icon;
+  document.getElementById('tp-title').textContent=t('trophy_unlocked',{name:trophyName(tr.id)});
+  document.getElementById('tp-desc').textContent=trophyDesc(tr.id);
+  document.getElementById('tp-xp').textContent=t('xp_bonus',{n:tr.xp});
   document.getElementById('trophy-popup').classList.add('show');
   sfx('trophy'); haptic([60,40,60,40,120]); confetti(70);
 }
 function closePopup(){
   document.getElementById('trophy-popup').classList.remove('show');
-  if(trophyQueue.length) setTimeout(nextTrophyPopup,150);
+  if(trophyQueue.length)setTimeout(nextTrophyPopup,150);
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  DISCOVER MAP + CHASSES
+//  DÉCOUVRIR
 // ═══════════════════════════════════════════════════════════════
 async function loadHunts(){
   const {data,error}=await sb.from('hunts_public').select('*').order('play_count',{ascending:false});
-  if(error){toast('Erreur chargement chasses');return;}
+  if(error){toast(t('t_error',{msg:error.message}));return;}
   huntsCache=data||[];
-  document.getElementById('hunt-count-label').textContent=huntsCache.length+' chasse(s) disponible(s) dans le monde';
+  await decorateHunts();
+  const codes=[...new Set(huntsCache.map(h=>h.country_code).filter(Boolean))];
+  const sel=document.getElementById('disc-country'), cur=sel.value;
+  sel.innerHTML=`<option value="">${esc(t('all_countries'))}</option>`+codes.map(c=>`<option value="${c}"${c===cur?' selected':''}>${flagOf(c)} ${esc(countryName(c))}</option>`).join('');
+  sel.style.display=codes.length>1?'inline-block':'none';
   renderHuntList();
-  if(discoverMap) addHuntMarkers();
+  if(discoverMap)addHuntMarkers();
+}
+// Ajoute langue, pays et nom traduit aux chasses (la vue publique ne les contient pas)
+async function decorateHunts(){
+  const ids=huntsCache.map(h=>h.id);
+  if(!ids.length)return;
+  const [{data:extra},{data:trs}]=await Promise.all([
+    sb.from('hunts').select('id,lang,country_code,city').in('id',ids),
+    sb.from('hunt_translations').select('hunt_id,lang,name').in('hunt_id',ids),
+  ]);
+  const ex=Object.fromEntries((extra||[]).map(e=>[e.id,e]));
+  huntsCache.forEach(h=>{
+    Object.assign(h,ex[h.id]||{});
+    h.lang=h.lang||'fr';
+    const mine=(trs||[]).filter(x=>x.hunt_id===h.id);
+    h.langs=[h.lang,...mine.map(x=>x.lang)];
+    h.displayName=(LANG!==h.lang&&mine.find(x=>x.lang===LANG)?.name)||h.name;
+  });
 }
 function renderHuntList(){
   const container=document.getElementById('hunt-list-container');
-  if(!huntsCache.length){container.innerHTML='<div class="loading">Aucune chasse publiée pour l\'instant.</div>';return;}
-  container.innerHTML=huntsCache.map((h,i)=>`
-    <div class="hunt-mini${i===0?' sel':''}" id="hm-${h.id}" onclick="focusHunt('${h.id}',${h.start_lat},${h.start_lng})">
+  const filter=document.getElementById('disc-country').value;
+  const list=huntsCache.filter(h=>!filter||h.country_code===filter);
+  document.getElementById('hunt-count-label').textContent=t('hunts_count',{n:list.length});
+  if(!list.length){container.innerHTML=`<div class="loading">${esc(t('no_hunts'))}</div>`;return;}
+  container.innerHTML=list.map((h,i)=>`
+    <div class="hunt-mini${i===0?' sel':''}" id="hm-${h.id}" onclick="focusHunt('${h.id}',${Number(h.start_lat)},${Number(h.start_lng)})">
       <div>
-        <div class="hm-title">${esc(h.name)}</div>
-        <div class="hm-meta"><span>${esc(h.country)}</span><span>${esc(h.step_count)} étapes</span><span>${esc(h.duration_min)} min</span><span>${esc(h.completions)} finies</span></div>
+        <div class="hm-title">${esc(h.displayName||h.name)}</div>
+        <div class="hm-meta">
+          <span>${h.country_code?flagOf(h.country_code)+' ':''}${esc(h.city||countryLabel(h.country))}</span>
+          <span>${esc(t('steps_n',{n:h.step_count}))}</span><span>${esc(t('minutes',{n:h.duration_min}))}</span>
+          <span>${esc(t('finished_n',{n:h.completions}))}</span>
+          <span title="${(h.langs||[]).join(', ')}">${(h.langs||[]).map(l=>LANGS[l]?.flag||l).join('')}</span>
+        </div>
       </div>
-      <button class="btn btn-amber btn-sm" onclick="event.stopPropagation();startPlay('${h.id}')">Jouer</button>
+      <button class="btn btn-amber btn-sm" onclick="event.stopPropagation();startPlay('${h.id}')">${esc(t('play'))}</button>
     </div>`).join('');
 }
 function initDiscoverMap(){
   if(discoverMap)return;
-  discoverMap=L.map('discover-map',{zoomControl:true,attributionControl:false}).setView([20,0],2);
+  discoverMap=L.map('discover-map',{zoomControl:true,attributionControl:false}).setView([46.5,2.5],5);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18}).addTo(discoverMap);
+  discLayer=L.layerGroup().addTo(discoverMap);
 }
 function addHuntMarkers(){
+  discLayer.clearLayers();
   huntsCache.forEach(h=>{
     const icon=L.divIcon({className:'',iconSize:[34,44],iconAnchor:[17,44],
       html:`<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#BA7517;border:2px solid white;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:15px;">🏴</span></div>`});
-    L.marker([h.start_lat,h.start_lng],{icon}).addTo(discoverMap)
+    L.marker([h.start_lat,h.start_lng],{icon}).addTo(discLayer)
       .on('click',()=>focusHunt(h.id,h.start_lat,h.start_lng))
-      .bindPopup(`<b>${esc(h.name)}</b><br>${esc(h.country)}`);
+      .bindPopup(`<b>${esc(h.displayName||h.name)}</b><br>${esc(h.city||'')}`);
   });
 }
 function focusHunt(id,lat,lng){
   document.querySelectorAll('.hunt-mini').forEach(c=>c.classList.remove('sel'));
   const el=document.getElementById('hm-'+id);
   if(el){el.classList.add('sel');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
-  if(discoverMap) discoverMap.flyTo([lat,lng],14,{duration:0.9});
+  if(discoverMap)discoverMap.flyTo([lat,lng],14,{duration:0.9});
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LEADERBOARD
+//  CLASSEMENT
 // ═══════════════════════════════════════════════════════════════
 function initLbMap(){
   if(lbMap)return;
-  lbMap=L.map('lb-map',{zoomControl:false,attributionControl:false}).setView([20,0],2);
+  lbMap=L.map('lb-map',{zoomControl:false,attributionControl:false}).setView([46.5,2.5],3);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:6}).addTo(lbMap);
 }
 async function loadLeaderboard(){
-  document.getElementById('lb-list').innerHTML='<div class="loading"><span class="spinner"></span>Chargement…</div>';
+  document.getElementById('lb-list').innerHTML='<div class="loading"><span class="spinner"></span></div>';
   let query=sb.from('leaderboard').select('*').limit(50);
-  if(currentFilter==='france') query=query.ilike('country','%France%');
-  if(currentFilter==='semaine') query=query.gte('last_seen',new Date(Date.now()-7*864e5).toISOString());
+  if(currentFilter==='pays'){
+    if(!profile.id){toast(t('t_need_profile'));return;}
+    query=query.like('country',flagOf(profile.countryCode)+'%');
+  }
+  if(currentFilter==='semaine')query=query.gte('last_seen',new Date(Date.now()-7*864e5).toISOString());
   const {data,error}=await query;
-  if(error){toast('Erreur classement');return;}
+  if(error){toast(t('t_scores_error'));return;}
   renderLb(data||[]);
-  // Marqueurs sur la map
   if(lbMap){
-    if(!lbLayer) lbLayer=L.layerGroup().addTo(lbMap);
+    if(!lbLayer)lbLayer=L.layerGroup().addTo(lbMap);
     lbLayer.clearLayers();
     (data||[]).filter(p=>p.gps_lat).forEach(p=>{
       const icon=L.divIcon({className:'',iconSize:[32,32],iconAnchor:[16,16],
         html:`<div style="width:32px;height:32px;border-radius:50%;background:#FAEEDA;border:2px solid #BA7517;display:flex;align-items:center;justify-content:center;font-size:17px;">${esc(p.emoji)}</div>`});
-      L.marker([p.gps_lat,p.gps_lng],{icon}).addTo(lbLayer)
-        .bindPopup(`<b>${esc(p.pseudo)}</b> — ${esc(p.xp)} XP`);
+      L.marker([p.gps_lat,p.gps_lng],{icon}).addTo(lbLayer).bindPopup(`<b>${esc(p.pseudo)}</b> — ${esc(p.xp)} XP`);
     });
   }
 }
@@ -770,97 +1082,115 @@ function setFilter(f,btn){
   loadLeaderboard();
 }
 function renderLb(data){
-  const myRank=data.findIndex(p=>p.pseudo===profile.pseudo);
-  if(myRank>=0) document.getElementById('p-world-rank').textContent='#'+(myRank+1);
-  const list=document.getElementById('lb-list');
-  list.innerHTML=data.map((p,i)=>{
+  const myRank=data.findIndex(p=>p.id===profile.id);
+  if(myRank>=0&&currentFilter==='mondial')document.getElementById('p-world-rank').textContent='#'+(myRank+1);
+  document.getElementById('lb-list').innerHTML=data.map((p,i)=>{
     const rk=i+1,medal=rk===1?'🥇':rk===2?'🥈':rk===3?'🥉':rk;
-    const rkClass=rk===1?'r1':rk===2?'r2':rk===3?'r3':'';
-    const isMe=p.pseudo===profile.pseudo;
-    const trophyIcons=(p.trophies||[]).slice(0,3).map(id=>{const t=TROPHIES.find(x=>x.id===id);return t?t.icon:'';}).join('');
+    const isMe=p.id===profile.id;
+    const icons=(p.trophies||[]).slice(0,3).map(id=>TROPHIES.find(x=>x.id===id)?.icon||'').join('');
     return`<div class="lb-row${isMe?' me':''}">
-      <div class="lb-rank ${rkClass}">${medal}</div>
+      <div class="lb-rank ${rk<=3?'r'+rk:''}">${medal}</div>
       <div class="lb-emo">${esc(p.emoji)}</div>
-      <div><div class="lb-pseudo">${esc(p.pseudo)}${isMe?' (moi)':''}</div><div class="lb-country">${esc(p.country)}</div></div>
-      <div class="lb-xp">${Number(p.xp||0).toLocaleString()}</div>
-      <div class="lb-badges" style="font-size:14px;">${trophyIcons}</div>
+      <div><div class="lb-pseudo">${esc(p.pseudo)}${isMe?' '+esc(t('me')):''}</div><div class="lb-country">${esc(countryLabel(p.country))}</div></div>
+      <div class="lb-xp">${Number(p.xp||0).toLocaleString(LANG)}</div>
+      <div class="lb-badges" style="font-size:14px;">${icons}</div>
     </div>`;
   }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  PLAY
+//  JOUER
 // ═══════════════════════════════════════════════════════════════
 async function joinByCode(){
   const code=document.getElementById('join-code').value.trim().toUpperCase();
-  if(!code){toast('Entre un code !');return;}
-  const {data,error}=await sb.from('hunts').select('*').eq('access_code',code).eq('status','publiee').single();
-  if(error||!data){toast('Code introuvable ou chasse non publiée.');return;}
+  if(!code){toast(t('t_enter_code'));return;}
+  const {data,error}=await sb.from('hunts').select('id').eq('access_code',code).eq('status','publiee').maybeSingle();
+  if(error||!data){toast(t('t_code_unknown'));return;}
   startPlay(data.id);
 }
 async function startPlay(huntId){
-  if(!profile.id){toast('Crée ton profil pour jouer !');showView('profil');return;}
+  if(!profile.id){toast(t('t_need_profile'));showView('profil');return;}
   const {data:hunt,error}=await sb.from('hunts').select('*').eq('id',huntId).single();
-  if(error||!hunt){toast('Chasse introuvable.');return;}
-  // Les réponses ne sont jamais chargées : le serveur les vérifie (tw_submit_answer)
+  if(error||!hunt){toast(t('e_hunt_unknown'));return;}
+  // Les réponses ne sont jamais chargées : le serveur les vérifie
   const {data:steps,error:se}=await sb.from('hunt_steps').select(STEP_COLS).eq('hunt_id',huntId).order('step_order');
-  if(se){toast('Erreur chargement des étapes.');console.error(se);return;}
+  if(se){toast(t('t_steps_error'));console.error(se);return;}
   hunt.steps=steps||[];
-  if(!hunt.steps.length){toast('Cette chasse n\'a aucune étape.');return;}
+  if(!hunt.steps.length){toast(t('t_no_steps'));return;}
   // Session créée par le serveur ; s'il y a une partie en cours sur cette chasse, il la reprend
   const {data:sid,error:sErr}=await sb.rpc('tw_start_session',{p_hunt_id:huntId});
   if(sErr){toast(errMsg(sErr));console.error(sErr);return;}
   const {data:sess}=await sb.from('game_sessions').select('current_step,started_at').eq('id',sid).single();
-  currentHunt=hunt; sessionId=sid;
+  await loadHuntTranslations(hunt);
+  currentHunt=hunt; sessionId=sid; gameStarted=false; gameFinished=false;
   currentStep=Math.min(sess?.current_step||0,hunt.steps.length-1);
   sessionStart=sess?.started_at?new Date(sess.started_at).getTime():Date.now();
   showView('jouer');
   document.getElementById('join-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
-  document.getElementById('g-title').textContent=hunt.name;
+  document.getElementById('g-title').textContent=huntName(hunt);
   document.getElementById('player-emo').textContent=profile.emoji||'🧭';
   renderIntro();
 }
+// Textes de la chasse dans la langue du joueur (repli sur la langue d'origine)
+async function loadHuntTranslations(h){
+  h.tr=null; h.stepTr={};
+  const base=h.lang||'fr';
+  if(LANG===base)return;
+  const [{data:ht},{data:st}]=await Promise.all([
+    sb.from('hunt_translations').select('name,description').eq('hunt_id',h.id).eq('lang',LANG).maybeSingle(),
+    sb.from('step_translations').select('step_id,text,hint').eq('lang',LANG).in('step_id',h.steps.map(s=>s.id)),
+  ]);
+  h.tr=ht||null;
+  (st||[]).forEach(x=>h.stepTr[x.step_id]=x);
+}
+const huntName=h=>h.tr?.name||h.name;
+const huntDesc=h=>h.tr?.description||h.description;
+const stepText=s=>currentHunt?.stepTr?.[s.id]?.text||s.text||'';
+const stepHint=s=>currentHunt?.stepTr?.[s.id]?.hint||s.hint;
+
 // Écran d'introduction : le « parchemin » raconte l'histoire de la chasse
 function renderIntro(){
   const h=currentHunt, total=h.steps.length, resumed=currentStep>0;
   document.getElementById('prog-bar').style.width=Math.round(currentStep/total*100)+'%';
-  document.getElementById('prog-lbl').textContent=resumed?'Reprise — étape '+(currentStep+1)+' / '+total:total+' étapes';
+  document.getElementById('prog-lbl').textContent=resumed?t('prog_resume',{n:currentStep+1,t:total}):t('prog_steps',{n:total});
+  const place=h.city||countryLabel(h.country);
   document.getElementById('step-body').innerHTML=`
     <div class="parchment step-enter">
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7;">${resumed?'Ton aventure continue':'Une aventure t\'attend'}</div>
-      <h3>${esc(h.name)}</h3>
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7;">${esc(t(resumed?'intro_resume':'intro_new'))}</div>
+      <h3>${esc(huntName(h))}</h3>
       <div class="intro-meta">
-        ${h.city?`<span>📍 ${esc(h.city)}</span>`:''}
-        <span>🧩 ${total} étapes</span>
-        ${h.duration_min?`<span>⏳ ~${esc(h.duration_min)} min</span>`:''}
-        ${h.difficulty?`<span>⚔️ ${esc(h.difficulty)}</span>`:''}
+        ${place?`<span>📍 ${h.country_code?flagOf(h.country_code)+' ':''}${esc(place)}</span>`:''}
+        <span>🧩 ${esc(t('steps_n',{n:total}))}</span>
+        ${h.duration_min?`<span>⏳ ~${esc(t('minutes',{n:h.duration_min}))}</span>`:''}
+        ${h.difficulty?`<span>⚔️ ${esc(t('diff_'+h.difficulty)||h.difficulty)}</span>`:''}
       </div>
       <div class="story" id="intro-story"></div>
-      <button class="btn btn-amber btn-full" style="font-size:14px;padding:10px;" onclick="beginAdventure()">${resumed?'Reprendre à l\'étape '+(currentStep+1):'Commencer l\'aventure'}</button>
-      <div style="font-size:10px;opacity:.65;text-align:center;margin-top:8px;">Le jeu va demander ta position${'DeviceOrientationEvent' in window?' et ta boussole':''}. Reste attentif à la route !</div>
+      <button class="btn btn-amber btn-full btn-big" onclick="beginAdventure()">${esc(resumed?t('btn_resume',{n:currentStep+1}):t('btn_begin'))}</button>
+      <div style="font-size:10px;opacity:.65;text-align:center;margin-top:8px;">${esc(t('DeviceOrientationEvent' in window?'intro_perm_compass':'intro_perm'))}</div>
     </div>`;
-  typeText(document.getElementById('intro-story'),h.description||'Suis les indices, trouve chaque lieu et perce les secrets de cette chasse.',18);
+  typeText(document.getElementById('intro-story'),huntDesc(h)||t('intro_default_story'),18);
 }
-// Clic sur « Commencer » : c'est le geste qui autorise son, boussole et GPS
+// Clic sur « Commencer » : ce geste autorise son, boussole et GPS
 async function beginAdventure(){
   initAudio();
   await enableCompass();
   sfx('start'); haptic(40);
+  gameStarted=true;
   renderStep();
   startGPS();
 }
 function togglePMap(){
   const w=document.getElementById('player-map-wrap');
   w.style.display=w.style.display!=='none'?'none':'block';
-  if(w.style.display!=='none') setTimeout(()=>{
+  if(w.style.display!=='none')setTimeout(()=>{
     if(!playerMap){
       const s=currentHunt.steps[currentStep]||currentHunt;
       playerMap=L.map('player-map',{zoomControl:false,attributionControl:false}).setView([s.lat,s.lng],16);
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20}).addTo(playerMap);
       drawPSteps();
-      if(lastPos&&playerMarker) playerMarker.setLatLng(lastPos);
-    } else playerMap.invalidateSize();
+      if(lastPos&&playerMarker)playerMarker.setLatLng(lastPos);
+    }else playerMap.invalidateSize();
   },80);
 }
 function drawPSteps(){
@@ -873,32 +1203,28 @@ function drawPSteps(){
     const icon=L.divIcon({className:'',iconSize:[24,24],iconAnchor:[12,12],
       html:`<div style="width:24px;height:24px;border-radius:50%;background:${bg};border:2px solid ${bd};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${col};">${done?'✓':(i+1)}</div>`});
     L.marker([s.lat,s.lng],{icon}).addTo(playerMap);
-    if(cur) L.circle([s.lat,s.lng],{radius:s.trigger_radius||20,color:'#7F77DD',fillColor:'#EEEDFE',fillOpacity:0.25,weight:1.5,dashArray:'4,3'}).addTo(playerMap);
+    if(cur)L.circle([s.lat,s.lng],{radius:s.trigger_radius||20,color:'#7F77DD',fillColor:'#EEEDFE',fillOpacity:0.25,weight:1.5,dashArray:'4,3'}).addTo(playerMap);
   });
-  if(profile.emoji){
-    const s=currentHunt.steps[currentStep];
-    const icon=L.divIcon({className:'',iconSize:[30,30],iconAnchor:[15,15],
-      html:`<div style="width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:16px;">${profile.emoji}</div>`});
-    if(!playerMarker) playerMarker=L.marker([s.lat,s.lng],{icon}).addTo(playerMap);
-  }
+  const s=currentHunt.steps[Math.min(currentStep,currentHunt.steps.length-1)];
+  const icon=L.divIcon({className:'',iconSize:[30,30],iconAnchor:[15,15],
+    html:`<div style="width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:16px;">${esc(profile.emoji)}</div>`});
+  if(!playerMarker)playerMarker=L.marker([s.lat,s.lng],{icon}).addTo(playerMap);
 }
 function startGPS(){
-  if(!navigator.geolocation){toast('GPS non disponible sur cet appareil.');return;}
+  if(!navigator.geolocation){toast(t('gps_unavailable'));return;}
   if(watchId!==null)return;
   watchId=navigator.geolocation.watchPosition(pos=>{
     const{latitude:lat,longitude:lng}=pos.coords;
     lastPos=[lat,lng];
-    if(playerMarker) playerMarker.setLatLng(lastPos);
+    if(playerMarker)playerMarker.setLatLng(lastPos);
     playerMap&&playerMap.panTo(lastPos);
     const s=currentHunt?.steps[currentStep];
-    if(s) onDist(haversine(lat,lng,s.lat,s.lng),s.trigger_radius||20);
+    if(s&&gameStarted&&!gameFinished)onDist(haversine(lat,lng,s.lat,s.lng),s.trigger_radius||20);
     syncGps(lat,lng);
-  },err=>{
-    if(err.code===1) toast('Autorise la localisation pour jouer.');
-  },{enableHighAccuracy:true,maximumAge:1000,timeout:10000});
+  },err=>{if(err.code===1)toast(t('allow_location'));},{enableHighAccuracy:true,maximumAge:1000,timeout:10000});
 }
 function stopGPS(){
-  if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+  if(watchId!==null)navigator.geolocation.clearWatch(watchId);
   watchId=null;
 }
 // Envoi limité (toutes les 15 s). La position publique du joueur est arrondie à ~1 km.
@@ -907,27 +1233,20 @@ async function syncGps(lat,lng){
   if(now-lastGpsSync<GPS_SYNC_MS)return;
   lastGpsSync=now;
   const ts=new Date().toISOString();
-  if(profile.id){
-    await sb.from('players').update({gps_lat:Math.round(lat*100)/100,gps_lng:Math.round(lng*100)/100,gps_updated:ts}).eq('id',profile.id);
-  }
-  if(sessionId){
-    await sb.from('game_sessions').update({current_lat:lat,current_lng:lng,gps_updated:ts}).eq('id',sessionId);
-  }
+  if(profile.id)await sb.from('players').update({gps_lat:Math.round(lat*100)/100,gps_lng:Math.round(lng*100)/100,gps_updated:ts}).eq('id',profile.id);
+  if(sessionId)await sb.from('game_sessions').update({current_lat:lat,current_lng:lng,gps_updated:ts}).eq('id',sessionId);
 }
 function onDist(dist,radius){
   const el=document.getElementById('prox-num');
-  const bar=document.getElementById('prox-fill');
-  const ok=document.getElementById('prox-ok');
-  const locked=document.getElementById('prox-locked');
-  const input=document.getElementById('step-input');
   if(!el)return;
   el.textContent=Math.round(dist);
-  if(bar) bar.style.width=Math.max(0,Math.min(100,100-dist/200*100))+'%';
+  const bar=document.getElementById('prox-fill');
+  if(bar)bar.style.width=Math.max(0,Math.min(100,100-dist/200*100))+'%';
   updateCompass(dist,radius);
   if(dist<=radius){
-    if(ok){ok.style.display='block';}
-    if(locked){locked.style.display='none';}
-    if(input){input.style.display='block';}
+    document.getElementById('prox-ok').style.display='block';
+    document.getElementById('prox-locked').style.display='none';
+    const input=document.getElementById('step-input'); if(input)input.style.display='block';
     if(zoneReachedStep!==currentStep){
       zoneReachedStep=currentStep;
       sfx('unlock'); haptic([100,60,100]);
@@ -936,30 +1255,25 @@ function onDist(dist,radius){
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  BOUSSOLE « CHAUD / FROID »
-// ═══════════════════════════════════════════════════════════════
-let deviceHeading=null, zoneReachedStep=-1, prevDist=null;
+// Boussole « chaud / froid »
+let deviceHeading=null, zoneReachedStep=-1, prevDist=null, lastBearing=null;
 function bearing(la1,ln1,la2,ln2){
   const r=Math.PI/180, y=Math.sin((ln2-ln1)*r)*Math.cos(la2*r);
   const x=Math.cos(la1*r)*Math.sin(la2*r)-Math.sin(la1*r)*Math.cos(la2*r)*Math.cos((ln2-ln1)*r);
   return (Math.atan2(y,x)/r+360)%360;
 }
-function cardinal(b){return['nord','nord-est','est','sud-est','sud','sud-ouest','ouest','nord-ouest'][Math.round(b/45)%8];}
-let lastBearing=null;
+const cardinal=b=>t('dirs')[Math.round(b/45)%8];
 function onOrientation(e){
-  if(typeof e.webkitCompassHeading==='number') deviceHeading=e.webkitCompassHeading;       // iOS
-  else if(e.absolute&&typeof e.alpha==='number') deviceHeading=(360-e.alpha)%360;          // Android
+  if(typeof e.webkitCompassHeading==='number')deviceHeading=e.webkitCompassHeading;       // iOS
+  else if(e.absolute&&typeof e.alpha==='number')deviceHeading=(360-e.alpha)%360;          // Android
   else return;
   const arrow=document.getElementById('compass-arrow');
-  if(arrow&&lastBearing!=null) arrow.style.transform=`rotate(${lastBearing-deviceHeading}deg)`;
+  if(arrow&&lastBearing!=null)arrow.style.transform=`rotate(${lastBearing-deviceHeading}deg)`;
 }
 async function enableCompass(){
   if(!('DeviceOrientationEvent' in window))return;
   try{
-    if(typeof DeviceOrientationEvent.requestPermission==='function'){
-      if(await DeviceOrientationEvent.requestPermission()!=='granted')return;
-    }
+    if(typeof DeviceOrientationEvent.requestPermission==='function'&&await DeviceOrientationEvent.requestPermission()!=='granted')return;
   }catch(e){return;}
   window.removeEventListener('deviceorientationabsolute',onOrientation);
   window.removeEventListener('deviceorientation',onOrientation);
@@ -971,61 +1285,57 @@ function updateCompass(dist,radius){
   const s=currentHunt.steps[currentStep];
   const b=lastBearing=bearing(lastPos[0],lastPos[1],s.lat,s.lng);
   arrow.style.transform=`rotate(${b-(deviceHeading??0)}deg)`;
-  const [label,color]=dist<=radius?['🔥 Tu y es !','#C2410C']:dist<50?['🔥 Brûlant','#C2410C']:dist<150?['☀️ Chaud','#BA7517']
-    :dist<400?['🌤 Tiède','#8A6D1F']:dist<1000?['❄️ Froid','#2563A8']:['🧊 Glacial','#1E3A8A'];
-  heat.textContent=label; heat.style.color=color;
+  const [key,color]=dist<=radius?['heat_here','#C2410C']:dist<50?['heat_burning','#C2410C']:dist<150?['heat_hot','#BA7517']
+    :dist<400?['heat_warm','#8A6D1F']:dist<1000?['heat_cold','#2563A8']:['heat_ice','#1E3A8A'];
+  heat.textContent=t(key); heat.style.color=color;
   let trend='';
   if(prevDist!=null&&dist>radius){
-    if(dist<prevDist-3) trend='Tu te rapproches… ';
-    else if(dist>prevDist+3) trend='Tu t\'éloignes ! ';
+    if(dist<prevDist-3)trend=t('trend_closer');
+    else if(dist>prevDist+3)trend=t('trend_farther');
   }
   prevDist=dist;
-  sub.textContent=dist<=radius?'Le secret est ici.':trend+'Direction : '+cardinal(b)+(deviceHeading==null?' (la flèche indique le nord en haut)':'');
+  sub.textContent=dist<=radius?t('heat_secret'):trend+t('direction',{d:cardinal(b)})+(deviceHeading==null?t('north_up'):'');
 }
 function renderStep(){
-  if(!currentHunt){return;}
-  if(currentStep>=currentHunt.steps.length)return;
+  if(!currentHunt||currentStep>=currentHunt.steps.length)return;
   hintUsed=false; prevDist=null; lastBearing=null;
   const s=currentHunt.steps[currentStep];
   const total=currentHunt.steps.length;
-  const pct=Math.round(currentStep/total*100);
-  document.getElementById('prog-bar').style.width=pct+'%';
-  document.getElementById('prog-lbl').textContent='Étape '+(currentStep+1)+' / '+total;
-  const tLabel=s.step_type==='qr'?'QR code':s.step_type==='prox'?'Point GPS':'Énigme';
-  const tBg=s.step_type==='qr'?'#FAECE7':s.step_type==='prox'?'#EEEDFE':'#E1F5EE';
-  const tCol=s.step_type==='qr'?'#4A1B0C':s.step_type==='prox'?'#26215C':'#085041';
-  let inputHtml='';
-  if(s.step_type==='qr') inputHtml=`<div id="step-input" class="step-input"><div style="border:0.5px dashed #e0ddd6;border-radius:8px;padding:1rem;text-align:center;cursor:pointer;" onclick="scanStepQR()"><div style="font-size:22px;margin-bottom:4px;">📷</div><div style="font-size:11px;color:#888;">Scanner le QR code</div></div></div>`;
-  else if(s.step_type==='prox') inputHtml=`<div id="step-input" class="step-input"><button class="btn btn-teal" style="width:100%;" onclick="reachStep()">Point atteint — continuer</button></div>`;
-  else inputHtml=`<div id="step-input" class="step-input"><div class="ans-row"><input type="text" id="ans" placeholder="Ta réponse…" onkeydown="if(event.key==='Enter')checkAns()"/><button class="btn btn-amber btn-sm" onclick="checkAns()">Valider</button></div></div>`;
+  document.getElementById('prog-bar').style.width=Math.round(currentStep/total*100)+'%';
+  document.getElementById('prog-lbl').textContent=t('prog_step',{n:currentStep+1,t:total});
+  const type=s.step_type==='qr'?'qr':s.step_type==='prox'?'prox':'enigme';
+  const tBg={qr:'#FAECE7',prox:'#EEEDFE',enigme:'#E1F5EE'}[type], tCol={qr:'#4A1B0C',prox:'#26215C',enigme:'#085041'}[type];
+  let inputHtml;
+  if(type==='qr')inputHtml=`<div id="step-input" class="step-input"><div style="border:0.5px dashed #e0ddd6;border-radius:8px;padding:1rem;text-align:center;cursor:pointer;" onclick="scanStepQR()"><div style="font-size:22px;margin-bottom:4px;">📷</div><div style="font-size:11px;color:#888;">${esc(t('scan_qr'))}</div></div></div>`;
+  else if(type==='prox')inputHtml=`<div id="step-input" class="step-input"><button class="btn btn-teal" style="width:100%;" onclick="reachStep()">${esc(t('reached_continue'))}</button></div>`;
+  else inputHtml=`<div id="step-input" class="step-input"><div class="ans-row"><input type="text" id="ans" placeholder="${esc(t('answer_ph'))}" onkeydown="if(event.key==='Enter')checkAns()"/><button class="btn btn-amber btn-sm" onclick="checkAns()">${esc(t('validate'))}</button></div></div>`;
   document.getElementById('step-body').innerHTML=`<div class="step-enter">
-    <div style="margin-bottom:6px;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${tBg};color:${tCol};">${tLabel}</span></div>
-    <div class="enigme-txt" id="enigme-txt" title="Touche pour tout afficher"></div>
+    <div style="margin-bottom:6px;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${tBg};color:${tCol};">${esc(t('type_'+type))}</span></div>
+    <div class="enigme-txt" id="enigme-txt" title="${esc(t('tap_all'))}"></div>
     <div class="prox-box">
-      <div style="font-size:10px;color:#888;margin-bottom:5px;">Distance jusqu'au point GPS</div>
+      <div style="font-size:10px;color:#888;margin-bottom:5px;">${esc(t('dist_label'))}</div>
       <div class="prox-row"><div><span class="prox-num" id="prox-num">—</span><span style="font-size:11px;color:#888;"> m</span></div><div class="prox-track"><div class="prox-fill" id="prox-fill" style="width:0%"></div></div></div>
-      <div class="prox-locked" id="prox-locked">Approche-toi (rayon ${s.trigger_radius||20} m) pour débloquer</div>
-      <div class="prox-ok" id="prox-ok">Zone atteinte — énigme déverrouillée !</div>
+      <div class="prox-locked" id="prox-locked">${esc(t('prox_locked',{r:s.trigger_radius||20}))}</div>
+      <div class="prox-ok" id="prox-ok">${esc(t('prox_ok'))}</div>
       <div class="compass">
         <div class="compass-dial"><div class="compass-arrow" id="compass-arrow">➤</div></div>
-        <div><div class="heat" id="heat">📡 Recherche du signal GPS…</div><div class="heat-sub" id="heat-sub">Active la localisation et sors à découvert.</div></div>
+        <div><div class="heat" id="heat">${esc(t('gps_search'))}</div><div class="heat-sub" id="heat-sub">${esc(t('gps_search_sub'))}</div></div>
       </div>
     </div>
     ${inputHtml}
-    <span class="hint-lnk" onclick="showHint()">Voir un indice</span>
-    <div class="hint-box" id="hint-box">${esc(s.hint||'Aucun indice disponible.')}</div>
-    <div class="fb-ok" id="fb-ok">${s.step_type==='enigme'?'Bonne réponse ! +20 XP':s.step_type==='qr'?'QR validé ! +20 XP':'Étape validée !'}</div>
-    <div class="fb-ko" id="fb-ko">Pas tout à fait… réessaie !</div>
-    <div class="demo-only" style="margin-top:9px;"><button class="btn btn-sm" onclick="simArrival()">Simuler arrivée GPS (demo)</button></div></div>`;
-  typeText(document.getElementById('enigme-txt'),s.text||'',28);
+    <span class="hint-lnk" onclick="showHint()">${esc(t('hint_show'))}</span>
+    <div class="hint-box" id="hint-box">${esc(stepHint(s)||t('no_hint'))}</div>
+    <div class="fb-ok" id="fb-ok">${esc(t('ok_'+type))}</div>
+    <div class="fb-ko" id="fb-ko"></div>
+    <div class="demo-only" style="margin-top:9px;"><button class="btn btn-sm" onclick="simArrival()">${esc(t('demo_sim'))}</button></div></div>`;
+  typeText(document.getElementById('enigme-txt'),stepText(s),28);
   if(playerMap){playerMap.eachLayer(l=>{if(!(l instanceof L.TileLayer))playerMap.removeLayer(l);});playerMarker=null;drawPSteps();playerMap.setView([s.lat,s.lng],16);if(lastPos&&playerMarker)playerMarker.setLatLng(lastPos);}
-  if(lastPos) onDist(haversine(lastPos[0],lastPos[1],s.lat,s.lng),s.trigger_radius||20);
+  if(lastPos)onDist(haversine(lastPos[0],lastPos[1],s.lat,s.lng),s.trigger_radius||20);
 }
 function simArrival(){onDist(5,(currentHunt?.steps[currentStep]?.trigger_radius)||20);}
+let hintUsed=false, stepBusy=false;
 function showHint(){hintUsed=true;const h=document.getElementById('hint-box');h.style.display=h.style.display==='block'?'none':'block';}
-let hintUsed=false;
-let stepBusy=false;
-// Réponse du serveur après une tentative : passe à l'étape suivante ou termine la chasse
+// Réponse du serveur après une tentative : étape suivante ou fin de chasse
 function onStepResult(res,koMsg){
   if(!res.correct){
     const ko=document.getElementById('fb-ko');
@@ -1039,12 +1349,11 @@ function onStepResult(res,koMsg){
   sfx(res.finished?'finish':'ok'); haptic(res.finished?[80,50,80,50,200]:60);
   document.getElementById('fb-ok').style.display='block';
   document.getElementById('fb-ko').style.display='none';
-  const inp=document.getElementById('ans'); if(inp) inp.disabled=true;
+  const inp=document.getElementById('ans'); if(inp)inp.disabled=true;
   hintUsed=false;
   setTimeout(()=>{
     currentStep=res.current_step;
-    if(res.finished) finishHunt(res);
-    else renderStep();
+    if(res.finished)finishHunt(res);else renderStep();
   },1200);
 }
 async function checkAns(){
@@ -1055,34 +1364,35 @@ async function checkAns(){
   const {data,error}=await sb.rpc('tw_submit_answer',{p_session:sessionId,p_answer:val,p_hint:hintUsed});
   stepBusy=false;
   if(error){console.error(error);toast(errMsg(error));return;}
-  onStepResult(data,'Pas tout à fait… réessaie !');
+  onStepResult(data,t('ko_answer'));
 }
-// Étapes « arrivée » et « QR » : le serveur contrôle la distance avec la dernière position GPS
+// Étapes « arrivée » : le serveur contrôle la distance avec la dernière position GPS
 async function reachStep(){
   if(stepBusy)return;
   stepBusy=true;
   const {data,error}=await sb.rpc('tw_reach_step',{p_session:sessionId,p_lat:lastPos?lastPos[0]:null,p_lng:lastPos?lastPos[1]:null});
   stepBusy=false;
   if(error){console.error(error);toast(errMsg(error));return;}
-  onStepResult(data,data.distance!=null?'Encore '+data.distance+' m selon le GPS, rapproche-toi !':'Position non reconnue.');
+  onStepResult(data,data.distance!=null?t('ko_dist',{d:data.distance}):t('ko_pos'));
 }
 async function finishHunt(res){
+  gameFinished=true;
   const dur=res.duration_sec;
   document.getElementById('step-body').innerHTML=`
     <div class="parchment step-enter" style="text-align:center;">
       <div style="font-size:48px;margin-bottom:6px;">🏆</div>
-      <h3>Trésor découvert !</h3>
-      <div style="font-size:12px;opacity:.75;margin-bottom:10px;">${esc(currentHunt?.name||'')}</div>
+      <h3>${esc(t('finish_title'))}</h3>
+      <div style="font-size:12px;opacity:.75;margin-bottom:10px;">${esc(huntName(currentHunt))}</div>
       <div style="font-size:18px;color:#7F77DD;font-weight:700;margin-bottom:4px;">+${Number(res.hunt_xp)||0} XP</div>
-      ${dur!=null?`<div style="font-size:12px;opacity:.75;margin-bottom:14px;">Temps : ${Math.floor(dur/60)} min ${dur%60} s</div>`:''}
+      ${dur!=null?`<div style="font-size:12px;opacity:.75;margin-bottom:14px;">${esc(t('time',{m:Math.floor(dur/60),s:dur%60}))}</div>`:''}
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn btn-amber" onclick="showView('scores')">Voir le classement</button>
-        <button class="btn" onclick="showView('decouvrir')">Autre chasse</button>
+        <button class="btn btn-amber" onclick="showView('scores')">${esc(t('see_scores'))}</button>
+        <button class="btn" onclick="showView('decouvrir')">${esc(t('other_hunt'))}</button>
       </div>
     </div>`;
   confetti(160);
   document.getElementById('prog-bar').style.width='100%';
-  document.getElementById('prog-lbl').textContent='Terminé !';
+  document.getElementById('prog-lbl').textContent=t('prog_done');
   stopGPS();
   sessionId=null;
   await refreshProfile(true);
@@ -1094,15 +1404,15 @@ async function finishHunt(res){
 // ═══════════════════════════════════════════════════════════════
 function initCreatorMap(){
   if(creatorMap)return;
-  creatorMap=L.map('creator-map',{zoomControl:true,attributionControl:false}).setView([48.8566,2.3522],5);
+  creatorMap=L.map('creator-map',{zoomControl:true,attributionControl:false}).setView([46.5,2.5],5);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20}).addTo(creatorMap);
   creatorMap.getContainer().style.cursor='crosshair';
   creatorMap.on('click',e=>{
     cPending=e.latlng;
-    document.getElementById('c-coord-info').textContent='GPS épinglé : '+e.latlng.lat.toFixed(6)+', '+e.latlng.lng.toFixed(6);
+    document.getElementById('c-coord-info').textContent=t('c_gps',{c:e.latlng.lat.toFixed(6)+', '+e.latlng.lng.toFixed(6)});
     document.getElementById('c-add-form').style.display='block';
     document.getElementById('c-add-form').scrollIntoView({behavior:'smooth',block:'nearest'});
-    if(window._cTmp) creatorMap.removeLayer(window._cTmp);
+    if(window._cTmp)creatorMap.removeLayer(window._cTmp);
     const icon=L.divIcon({className:'',iconSize:[18,18],iconAnchor:[9,9],html:'<div style="width:18px;height:18px;border-radius:50%;background:#EEEDFE;border:2px dashed #7F77DD;"></div>'});
     window._cTmp=L.marker([e.latlng.lat,e.latlng.lng],{icon}).addTo(creatorMap);
   });
@@ -1110,23 +1420,24 @@ function initCreatorMap(){
 function toggleCAF(){
   const type=document.getElementById('c-type').value;
   document.getElementById('c-ans-wrap').style.display=type==='prox'?'none':'block';
-  document.getElementById('c-ans-lbl').textContent=type==='qr'?'Contenu du QR (vide = automatique)':'Réponse attendue';
+  const lbl=document.getElementById('c-ans-lbl');
+  lbl.dataset.i18n=type==='qr'?'c_answer_qr':'c_answer';
+  lbl.textContent=t(lbl.dataset.i18n);
 }
 function randomQRCode(){
   const abc='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const r=crypto.getRandomValues(new Uint8Array(6));
-  return 'TW-'+Array.from(r,b=>abc[b%abc.length]).join('');
+  return 'TW-'+Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>abc[b%abc.length]).join('');
 }
 function confirmCStep(){
-  if(!cPending){toast('Clique d\'abord sur la carte.');return;}
+  if(!cPending){toast(t('t_click_map'));return;}
   const text=document.getElementById('c-enigme').value.trim();
-  if(!text){toast('Ajoute un texte d\'énigme.');return;}
+  if(!text){toast(t('t_add_text'));return;}
   const type=document.getElementById('c-type').value;
   let ans=document.getElementById('c-ans').value.trim();
-  if(type==='qr'&&!ans) ans=randomQRCode();
+  if(type==='qr'&&!ans)ans=randomQRCode();
   const hint=document.getElementById('c-hint').value.trim();
   const rad=parseInt(document.getElementById('c-rad').value);
-  if(type!=='prox'&&!ans){toast('Ajoute la réponse attendue.');return;}
+  if(type!=='prox'&&!ans){toast(t('t_add_answer'));return;}
   cStepsData.push({lat:cPending.lat,lng:cPending.lng,step_type:type,text,answer:type==='prox'?'':ans,hint,trigger_radius:rad});
   if(window._cTmp){creatorMap.removeLayer(window._cTmp);window._cTmp=null;}
   renderCSteps();
@@ -1139,14 +1450,13 @@ function renderCSteps(){
   cMarkers.forEach(m=>creatorMap.removeLayer(m));
   cCircles.forEach(c=>creatorMap.removeLayer(c));
   cMarkers=[];cCircles=[];
-  const list=document.getElementById('c-steps-list');
-  list.innerHTML=cStepsData.map((s,i)=>{
+  document.getElementById('c-steps-list').innerHTML=cStepsData.map((s,i)=>{
     const icon=L.divIcon({className:'',iconSize:[26,26],iconAnchor:[13,13],
       html:`<div style="width:26px;height:26px;border-radius:50%;background:#FAEEDA;border:2px solid #BA7517;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#633806;">${i+1}</div>`});
     cMarkers.push(L.marker([s.lat,s.lng],{icon}).addTo(creatorMap).bindPopup(esc(s.text)));
     cCircles.push(L.circle([s.lat,s.lng],{radius:s.trigger_radius,color:'#7F77DD',fillColor:'#EEEDFE',fillOpacity:0.25,weight:1.5}).addTo(creatorMap));
-    const tLabel=s.step_type==='qr'?'QR code':s.step_type==='prox'?'Arrivée':'Énigme';
-    return `<div class="c-step-item"><div class="c-step-num">${i+1}</div><div><div class="c-step-txt">${esc(s.text)}</div><div class="c-step-sub">${tLabel}${s.answer?' · "'+esc(s.answer)+'"':''} · ${s.trigger_radius}m · ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div></div><button class="del-btn" onclick="removeCStep(${i})">✕</button></div>`;
+    const tLabel=s.step_type==='qr'?t('type_qr'):s.step_type==='prox'?t('step_arrival'):t('type_enigme');
+    return `<div class="c-step-item"><div class="c-step-num">${i+1}</div><div><div class="c-step-txt">${esc(s.text)}</div><div class="c-step-sub">${esc(tLabel)}${s.answer?' · "'+esc(s.answer)+'"':''} · ${s.trigger_radius}m · ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div></div><button class="del-btn" onclick="removeCStep(${i})">✕</button></div>`;
   }).join('');
 }
 function removeCStep(i){cStepsData.splice(i,1);renderCSteps();}
@@ -1155,30 +1465,30 @@ function cancelCStep(){
   document.getElementById('c-add-form').style.display='none';cPending=null;
 }
 async function publishHunt(){
-  if(!profile.id){toast('Crée ton profil d\'abord !');return;}
+  if(!profile.id){toast(t('t_need_profile'));return;}
   const name=document.getElementById('c-name').value.trim();
   const code=document.getElementById('c-code').value.trim().toUpperCase();
-  if(!name||!code){toast('Nom et code obligatoires.');return;}
-  if(cStepsData.length<2){toast('Ajoute au moins 2 étapes.');return;}
-  const firstStep=cStepsData[0];
+  if(!name||!code){toast(t('t_name_code'));return;}
+  if(cStepsData.length<2){toast(t('t_two_steps'));return;}
+  const cc=document.getElementById('c-country').value, hl=document.getElementById('c-lang').value;
+  const first=cStepsData[0];
   const {data:hunt,error}=await sb.from('hunts').insert({
     creator_id:profile.id, name, access_code:code,
-    country:document.getElementById('c-city').value,
-    city:document.getElementById('c-city').value,
+    country:countryStored(cc,hl), country_code:cc, lang:hl,
+    city:document.getElementById('c-city').value.trim(),
     duration_min:parseInt(document.getElementById('c-duration').value),
     difficulty:document.getElementById('c-diff').value,
     description:document.getElementById('c-desc').value,
     status:'publiee',
-    start_lat:firstStep.lat, start_lng:firstStep.lng,
+    start_lat:first.lat, start_lng:first.lng,
   }).select().single();
-  if(error){toast('Erreur publication : '+(error.message||error.code));return;}
-  const stepsToInsert=cStepsData.map((s,i)=>({...s,hunt_id:hunt.id,step_order:i+1}));
-  const {error:se}=await sb.from('hunt_steps').insert(stepsToInsert);
-  if(se){toast('Erreur étapes : '+se.message);return;}
-  toast('🎉 Chasse publiée ! Code : '+code);
+  if(error){toast(t('t_publish_error',{msg:error.message||error.code}));return;}
+  const {error:se}=await sb.from('hunt_steps').insert(cStepsData.map((s,i)=>({...s,hunt_id:hunt.id,step_order:i+1})));
+  if(se){toast(t('t_publish_error',{msg:se.message}));return;}
+  toast(t('t_published',{c:code}),5000);
   lastPublished={name,code,steps:cStepsData.map((s,i)=>({...s,step_order:i+1}))};
   const nQR=lastPublished.steps.filter(s=>s.step_type==='qr').length;
-  document.getElementById('print-box-txt').textContent='« '+name+' » : QR d\'entrée'+(nQR?' + '+nQR+' QR d\'étape':'')+' à imprimer.';
+  document.getElementById('print-box-txt').textContent=t('print_ready',{name,extra:nQR?t('print_extra',{n:nQR}):''});
   document.getElementById('print-box').style.display='flex';
   cStepsData=[];
   renderCSteps();
@@ -1196,16 +1506,12 @@ async function openScanner(title,cb){
   scanCb=cb;
   document.getElementById('scan-title').textContent=title;
   document.getElementById('scan-manual').value='';
-  document.getElementById('scan-msg').textContent='Vise le QR code avec la caméra arrière.';
+  document.getElementById('scan-msg').textContent=t('scan_aim');
   document.getElementById('scan-modal').classList.add('show');
   const video=document.getElementById('scan-video');
-  try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-  }catch(e){
-    document.getElementById('scan-msg').textContent='Caméra indisponible : tape le code écrit sous le QR.';
-    return;
-  }
-  if(!scanCb){closeScanner();return;} // fermé pendant la demande d'accès
+  try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});}
+  catch(e){document.getElementById('scan-msg').textContent=t('scan_nocam');return;}
+  if(!scanCb){closeScanner();return;}
   video.srcObject=scanStream;
   try{await video.play();}catch(e){}
   scanDetector=null;
@@ -1229,45 +1535,39 @@ async function scanLoop(){
     }
   }
   if(text){finishScan(text);return;}
-  if(scanStream) scanRaf=requestAnimationFrame(scanLoop);
+  if(scanStream)scanRaf=requestAnimationFrame(scanLoop);
 }
 function finishScan(text){
   const cb=scanCb;
   closeScanner();
-  if(navigator.vibrate) navigator.vibrate(80);
-  if(cb&&text.trim()) cb(text.trim());
+  haptic(80);
+  if(cb&&text.trim())cb(text.trim());
 }
-function submitManualScan(){
-  const v=document.getElementById('scan-manual').value.trim();
-  if(v) finishScan(v);
-}
+function submitManualScan(){const v=document.getElementById('scan-manual').value.trim();if(v)finishScan(v);}
 function closeScanner(){
   cancelAnimationFrame(scanRaf);
-  if(scanStream) scanStream.getTracks().forEach(t=>t.stop());
+  if(scanStream)scanStream.getTracks().forEach(tr=>tr.stop());
   scanStream=null; scanCb=null;
   document.getElementById('scan-video').srcObject=null;
   document.getElementById('scan-modal').classList.remove('show');
 }
-// QR d'entrée : contient le code de la chasse
 function scanEntryQR(){
-  openScanner('Scanne le QR d\'entrée',text=>{
+  openScanner(t('scan_entry_title'),text=>{
     document.getElementById('join-code').value=text.toUpperCase().slice(0,8);
     joinByCode();
   });
 }
-// QR d'étape : son contenu est vérifié par le serveur
-function scanStepQR(){openScanner('Scanne le QR de l\'étape '+(currentStep+1),submitQR);}
+function scanStepQR(){openScanner(t('scan_step_title',{n:currentStep+1}),submitQR);}
 async function submitQR(text){
   if(stepBusy)return;
   stepBusy=true;
   const {data,error}=await sb.rpc('tw_submit_answer',{p_session:sessionId,p_answer:text,p_hint:false});
   stepBusy=false;
   // Ancienne étape QR créée sans contenu : validée par la position GPS
-  if(error&&(error.message||'').includes('mauvais_type_etape')) return reachStep();
+  if(error&&(error.message||'').includes('mauvais_type_etape'))return reachStep();
   if(error){console.error(error);toast(errMsg(error));return;}
-  onStepResult(data,'Ce QR ne correspond pas à cette étape.');
+  onStepResult(data,t('ko_qr'));
 }
-
 let lastPublished=null;
 function qrDataURL(text){
   const div=document.createElement('div');
@@ -1275,22 +1575,22 @@ function qrDataURL(text){
   const c=div.querySelector('canvas');
   return c?c.toDataURL('image/png'):div.querySelector('img').src;
 }
-// Ouvre une page imprimable : QR d'entrée + un QR par étape « QR »
+// Page imprimable : QR d'entrée + un QR par étape « QR »
 function printQRCodes(p=lastPublished){
   if(!p)return;
-  if(!window.QRCode){toast('Générateur de QR non chargé.');return;}
+  if(!window.QRCode){toast(t('t_qrgen'));return;}
   const card=(title,sub,text)=>`<div class="card"><h2>${esc(title)}</h2><p>${esc(sub)}</p><img src="${qrDataURL(text)}" alt=""/><div class="code">${esc(text)}</div></div>`;
-  const cards=[card('Entrée — '+p.name,'Scanne pour rejoindre la chasse',p.code)]
-    .concat(p.steps.filter(s=>s.step_type==='qr').map(s=>card('Étape '+s.step_order,s.text,s.answer)));
+  const cards=[card(t('print_entry',{name:p.name}),t('print_entry_sub'),p.code)]
+    .concat(p.steps.filter(s=>s.step_type==='qr').map(s=>card(t('print_step',{n:s.step_order}),s.text,s.answer)));
   const w=window.open('','_blank');
-  if(!w){toast('Autorise les fenêtres pop-up pour imprimer.');return;}
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>QR — ${esc(p.name)}</title>
+  if(!w){toast(t('t_popup'));return;}
+  w.document.write(`<!DOCTYPE html><html lang="${LANG}"><head><meta charset="UTF-8"><title>QR — ${esc(p.name)}</title>
 <style>body{font-family:'Segoe UI',system-ui,sans-serif;margin:0;padding:16px;color:#1a1a18;background:#fff;}
 .card{break-inside:avoid;page-break-inside:avoid;border:1px dashed #bbb;border-radius:12px;padding:18px;margin:0 auto 18px;max-width:420px;text-align:center;}
 h2{font-size:18px;margin:0 0 4px;}p{font-size:13px;color:#555;margin:0 0 10px;}img{width:260px;height:260px;}
 .code{font-family:monospace;font-size:18px;letter-spacing:2px;margin-top:6px;}
 .bar{text-align:center;margin-bottom:16px;}@media print{.bar{display:none;}}</style></head>
-<body><div class="bar"><button onclick="print()" style="padding:10px 18px;font-size:14px;">Imprimer</button></div>${cards.join('')}</body></html>`);
+<body><div class="bar"><button onclick="print()" style="padding:10px 18px;font-size:14px;">${esc(t('print_print'))}</button></div>${cards.join('')}</body></html>`);
   w.document.close();
 }
 
@@ -1300,34 +1600,36 @@ h2{font-size:18px;margin:0 0 4px;}p{font-size:13px;color:#555;margin:0 0 10px;}i
 let myHunts=[];
 async function loadMyHunts(){
   const box=document.getElementById('my-hunts');
-  if(!profile.id){box.innerHTML='<div class="loading">Crée ton profil pour voir tes chasses.</div>';return;}
-  box.innerHTML='<div class="loading"><span class="spinner"></span>Chargement…</div>';
+  if(!profile.id){box.innerHTML=`<div class="loading">${esc(t('mine_need_profile'))}</div>`;return;}
+  box.innerHTML='<div class="loading"><span class="spinner"></span></div>';
   const {data,error}=await sb.rpc('tw_my_hunts');
-  if(error){box.innerHTML='<div class="loading">Impossible de charger tes chasses.</div>';console.error(error);return;}
+  if(error){box.innerHTML=`<div class="loading">${esc(t('mine_load_error'))}</div>`;console.error(error);return;}
   myHunts=data||[];
   if(!myHunts.length){
-    box.innerHTML='<div class="loading">Tu n\'as encore créé aucune chasse.<br><br><button class="btn btn-amber" onclick="showView(\'creer\')">Créer ma première chasse</button></div>';
+    box.innerHTML=`<div class="loading">${esc(t('mine_empty'))}<br><br><button class="btn btn-amber" onclick="showView('creer')">${esc(t('mine_create_first'))}</button></div>`;
     return;
   }
   box.innerHTML=myHunts.map((h,i)=>{
     const rate=h.play_count?Math.round(h.completions/h.play_count*100)+'%':'—';
-    const best=h.best_time_sec?Math.floor(h.best_time_sec/60)+' min':'—';
-    const st=h.status==='publiee'?'<span class="badge b-green">Publiée</span>':`<span class="badge b-gray">${esc(h.status)}</span>`;
+    const best=h.best_time_sec?t('minutes',{n:Math.floor(h.best_time_sec/60)}):'—';
+    const st=h.status==='publiee'?`<span class="badge b-green">${esc(t('published'))}</span>`:`<span class="badge b-gray">${esc(h.status)}</span>`;
+    const langs=[h.lang,...(h.langs||[])].map(l=>LANGS[l]?.flag||l).join(' ');
     return `<div class="mh-card">
       <div class="mh-head">
-        <div><div class="mh-name">${esc(h.name)}</div><div class="mh-sub">${h.city?esc(h.city)+' · ':''}${h.step_count} étapes${h.qr_count?' · '+h.qr_count+' QR':''} · ${st}</div></div>
-        <div class="mh-code" title="Code joueurs">${esc(h.access_code)}</div>
+        <div><div class="mh-name">${esc(h.name)}</div><div class="mh-sub">${h.city?esc(h.city)+' · ':''}${esc(t('steps_n',{n:h.step_count}))}${h.qr_count?' · '+h.qr_count+' QR':''} · ${st} · ${langs}</div></div>
+        <div class="mh-code" title="${esc(t('players_code'))}">${esc(h.access_code)}</div>
       </div>
       <div class="mh-stats">
-        <div class="mh-stat"><b>${h.play_count}</b><span>parties</span></div>
-        <div class="mh-stat"><b>${h.completions}</b><span>terminées</span></div>
-        <div class="mh-stat"><b>${rate}</b><span>réussite</span></div>
-        <div class="mh-stat"><b>${best}</b><span>record</span></div>
+        <div class="mh-stat"><b>${h.play_count}</b><span>${esc(t('st_games'))}</span></div>
+        <div class="mh-stat"><b>${h.completions}</b><span>${esc(t('st_done'))}</span></div>
+        <div class="mh-stat"><b>${rate}</b><span>${esc(t('st_rate'))}</span></div>
+        <div class="mh-stat"><b>${esc(best)}</b><span>${esc(t('st_best'))}</span></div>
       </div>
       <div class="mh-actions">
-        <button class="btn btn-sm btn-purple" onclick="printMyHuntQR(${i})">🖨 Imprimer les QR</button>
-        <button class="btn btn-sm" onclick="copyHuntCode(${i})">📋 Copier le code</button>
-        ${h.status==='publiee'?`<button class="btn btn-sm btn-amber" onclick="startPlay('${esc(h.id)}')">▶ Tester</button>`:''}
+        <button class="btn btn-sm btn-purple" onclick="openTranslations(${i})">${esc(t('translations'))}</button>
+        <button class="btn btn-sm" onclick="printMyHuntQR(${i})">${esc(t('print_qr'))}</button>
+        <button class="btn btn-sm" onclick="copyHuntCode(${i})">${esc(t('copy_code'))}</button>
+        ${h.status==='publiee'?`<button class="btn btn-sm btn-amber" onclick="startPlay('${esc(h.id)}')">${esc(t('test'))}</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1335,21 +1637,91 @@ async function loadMyHunts(){
 async function printMyHuntQR(i){
   const h=myHunts[i];
   const {data,error}=await sb.rpc('tw_my_qr_codes',{p_hunt_id:h.id});
-  if(error){toast('Erreur : '+error.message);return;}
-  printQRCodes({name:h.name,code:h.access_code,
-    steps:(data||[]).map(r=>({step_type:'qr',step_order:r.step_order,text:r.text,answer:r.qr}))});
+  if(error){toast(t('t_error',{msg:error.message}));return;}
+  printQRCodes({name:h.name,code:h.access_code,steps:(data||[]).map(r=>({step_type:'qr',step_order:r.step_order,text:r.text,answer:r.qr}))});
 }
 async function copyHuntCode(i){
+  const c=myHunts[i].access_code;
+  try{await navigator.clipboard.writeText(c);toast(t('code_copied',{c}));}catch(e){toast(t('code_is',{c}));}
+}
+
+// Éditeur de traductions d'une chasse
+let trState=null;
+async function openTranslations(i){
   const h=myHunts[i];
-  try{await navigator.clipboard.writeText(h.access_code);toast('Code « '+h.access_code+' » copié !');}
-  catch(e){toast('Code : '+h.access_code);}
+  const {data,error}=await sb.rpc('tw_hunt_for_edit',{p_hunt_id:h.id});
+  if(error){toast(errMsg(error));return;}
+  trState={data,lang:trState?.lang&&trState.lang!==data.hunt.lang?trState.lang:null};
+  document.getElementById('mine-list-panel').style.display='none';
+  document.getElementById('tr-panel').style.display='block';
+  if(!trState.lang)trState.lang=Object.keys(LANGS).find(l=>l!==data.hunt.lang&&l===LANG)||Object.keys(LANGS).find(l=>l!==data.hunt.lang);
+  renderTranslations();
+}
+function closeTranslations(){
+  trState=null;
+  document.getElementById('tr-panel').style.display='none';
+  document.getElementById('mine-list-panel').style.display='block';
+  loadMyHunts();
+}
+function renderTranslations(){
+  const {data,lang}=trState, h=data.hunt, tr=data.translations[lang]||{steps:{}};
+  const base=LANGS[h.lang]||{flag:'',name:h.lang};
+  const langBtns=Object.entries(LANGS).filter(([l])=>l!==h.lang).map(([l,v])=>
+    `<button class="tr-lang${l===lang?' active':''}" onclick="trState.lang='${l}';renderTranslations()">${v.flag} ${v.name}${data.translations[l]?' ✓':''}</button>`).join('');
+  const steps=data.steps.map((s,i)=>{
+    const st=(tr.steps||{})[s.id]||{};
+    return `<div class="tr-step">
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px;">${esc(t('tr_step',{n:i+1}))} · ${esc(t('type_'+(s.step_type==='qr'?'qr':s.step_type==='prox'?'prox':'enigme')))}</div>
+      <div class="tr-orig">${esc(t('tr_original'))} ${esc(s.text)}</div>
+      <div class="field"><label>${esc(t('tr_text'))}</label><textarea data-step="${s.id}" data-f="text">${esc(st.text||'')}</textarea></div>
+      <div class="field"><label>${esc(t('tr_hint'))}${s.hint?' — '+esc(t('tr_original'))+' '+esc(s.hint):''}</label><input type="text" data-step="${s.id}" data-f="hint" value="${esc(st.hint||'')}"/></div>
+      ${s.step_type==='enigme'?`<div class="field"><label>${esc(t('tr_answer'))} — ${esc(t('tr_original'))} ${esc(s.answer||'')}</label><input type="text" data-step="${s.id}" data-f="answer" value="${esc(st.answer||'')}"/></div>`:''}
+      ${s.step_type==='qr'?`<div class="note">${esc(t('tr_qr_note'))}</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('tr-panel').innerHTML=`
+    <button class="link-btn" onclick="closeTranslations()">${esc(t('back'))}</button>
+    <div class="sh"><h2>${esc(t('tr_title'))} — ${esc(h.name)}</h2></div>
+    <div class="note">${esc(t('tr_base',{lang:base.flag+' '+base.name}))}</div>
+    <div class="note">${esc(t('tr_pick'))}</div>
+    <div class="tr-langs">${langBtns}</div>
+    <div class="field"><label>${esc(t('tr_name'))} — ${esc(t('tr_original'))} ${esc(h.name)}</label><input type="text" id="tr-name" value="${esc(tr.name||'')}"/></div>
+    <div class="field"><label>${esc(t('tr_desc'))}</label><div class="tr-orig">${esc(h.description||'')}</div><textarea id="tr-desc" style="height:90px;">${esc(tr.description||'')}</textarea></div>
+    ${steps}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+      <button class="btn btn-amber" onclick="saveTranslation()">${esc(t('tr_save'))}</button>
+      ${data.translations[lang]?`<button class="btn" onclick="deleteTranslation()">${esc(t('tr_delete'))}</button>`:''}
+    </div>`;
+}
+async function saveTranslation(){
+  const {data,lang}=trState;
+  const steps={};
+  document.querySelectorAll('#tr-panel [data-step]').forEach(el=>{
+    (steps[el.dataset.step]||(steps[el.dataset.step]={step_id:el.dataset.step}))[el.dataset.f]=el.value;
+  });
+  const payload={name:document.getElementById('tr-name').value,description:document.getElementById('tr-desc').value,steps:Object.values(steps)};
+  const {error}=await sb.rpc('tw_save_translation',{p_hunt_id:data.hunt.id,p_lang:lang,p_data:payload});
+  if(error){toast(errMsg(error));return;}
+  toast(t('tr_saved'));
+  await reloadTranslations();
+}
+async function deleteTranslation(){
+  const {data,lang}=trState;
+  if(!confirm(t('tr_confirm_delete',{lang:LANGS[lang].flag+' '+LANGS[lang].name})))return;
+  const {error}=await sb.rpc('tw_delete_translation',{p_hunt_id:data.hunt.id,p_lang:lang});
+  if(error){toast(errMsg(error));return;}
+  toast(t('tr_deleted'));
+  await reloadTranslations();
+}
+async function reloadTranslations(){
+  const {data,error}=await sb.rpc('tw_hunt_for_edit',{p_hunt_id:trState.data.hunt.id});
+  if(!error){trState.data=data;renderTranslations();}
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  AMBIANCE : sons (synthétisés, aucun fichier), vibrations, texte, confettis
+//  AMBIANCE : sons synthétisés, vibrations, texte, confettis
 // ═══════════════════════════════════════════════════════════════
-let audioCtx=null;
-let soundOn=true;
+let audioCtx=null, soundOn=true;
 try{soundOn=localStorage.getItem('tw_sound')!=='off';}catch(e){}
 function initAudio(){
   if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)audioCtx=new AC();}
@@ -1363,13 +1735,13 @@ function toggleSound(){
   if(soundOn){initAudio();sfx('ok');}
 }
 function tone(freq,start,dur,type='sine',vol=.18){
-  const t=audioCtx.currentTime+start, o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type=type; o.frequency.setValueAtTime(freq,t);
-  g.gain.setValueAtTime(0.0001,t);
-  g.gain.exponentialRampToValueAtTime(vol,t+0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  const t0=audioCtx.currentTime+start, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t0);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(vol,t0+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
   o.connect(g).connect(audioCtx.destination);
-  o.start(t); o.stop(t+dur+0.05);
+  o.start(t0); o.stop(t0+dur+0.05);
 }
 const SFX={
   start: ()=>[392,523,659].forEach((f,i)=>tone(f,i*.12,.35,'triangle')),
@@ -1379,17 +1751,12 @@ const SFX={
   trophy:()=>[523,523,523,659,784,1047].forEach((f,i)=>tone(f,[0,.12,.24,.36,.52,.68][i],i===5?.7:.16,'square',.07)),
   finish:()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i*.14,i===5?.9:.2,'triangle',.18)),
 };
-function sfx(name){
-  if(!soundOn)return;
-  try{initAudio(); if(audioCtx&&SFX[name])SFX[name]();}catch(e){}
-}
+function sfx(name){if(!soundOn)return;try{initAudio();if(audioCtx&&SFX[name])SFX[name]();}catch(e){}}
 function haptic(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
-
 // Texte qui s'écrit lettre par lettre ; une touche affiche tout d'un coup
 function typeText(el,text,speed){
   if(!el)return;
-  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){el.textContent=text;return;}
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=text;return;}
   const token={}; el._typing=token;
   let i=0;
   el.textContent=''; el.classList.add('typing');
@@ -1403,8 +1770,6 @@ function typeText(el,text,speed){
     setTimeout(step,/[.!?…]/.test(text[i-1])?speed*8:speed);
   })();
 }
-
-// Confettis (canvas plein écran, se retire tout seul)
 function confetti(n){
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const c=document.createElement('canvas'); c.id='confetti';
@@ -1414,19 +1779,55 @@ function confetti(n){
     vx:(Math.random()-.5)*4,vy:2+Math.random()*4,r:Math.random()*6.28,vr:(Math.random()-.5)*.3,
     w:6+Math.random()*6,h:4+Math.random()*4,col:colors[Math.random()*colors.length|0]}));
   const t0=performance.now();
-  (function frame(t){
+  (function frame(now){
     ctx.clearRect(0,0,c.width,c.height);
     parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.r+=p.vr;
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.col;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
-    if(t-t0<3500) requestAnimationFrame(frame); else c.remove();
+    if(now-t0<3500)requestAnimationFrame(frame);else c.remove();
   })(t0);
 }
-renderSoundBtn();
 
+// ═══════════════════════════════════════════════════════════════
+//  DÉMARRAGE
+// ═══════════════════════════════════════════════════════════════
 // Bouton « Simuler arrivée GPS » visible uniquement avec ?demo dans l'URL
 const DEMO_MODE=new URLSearchParams(location.search).has('demo');
 document.head.insertAdjacentHTML('beforeend',DEMO_MODE?'':'<style>.demo-only{display:none!important;}</style>');
-restoreProfile();
+
+sb.auth.onAuthStateChange((event,session)=>{
+  authUser=session?.user||null;
+  // pas d'appel Supabase directement ici (recommandation supabase-js) : on diffère
+  if(event==='PASSWORD_RECOVERY')setTimeout(()=>openPwModal('reset'),0);
+});
+
+async function init(){
+  fillLangSelect(document.getElementById('lang-select'),LANG);
+  fillLangSelect(document.getElementById('c-lang'),LANG);
+  fillCountrySelect(document.getElementById('country-select'),defaultCountry());
+  fillCountrySelect(document.getElementById('c-country'),defaultCountry());
+  applyI18n();
+  renderSoundBtn();
+  document.getElementById('scan-title').textContent=t('scan_title');
+  if(!window.PublicKeyCredential)document.getElementById('passkey-login-btn').style.display='none';
+
+  // Retour d'une connexion Google / d'un lien email avec erreur
+  const params=new URLSearchParams(location.hash.slice(1)+'&'+location.search.slice(1));
+  const errCode=params.get('error_code');
+  if(errCode){
+    history.replaceState(null,'',SITE_URL);
+    // ce compte Google a déjà son propre compte TreasureWorld : on s'y connecte en emportant la progression invité
+    if(errCode==='identity_already_exists'){await restoreProfile();await loginWithGoogle();return;}
+    toast(t('t_error',{msg:params.get('error_description')||errCode}),6000);
+  }
+  const {data:{session}}=await sb.auth.getSession();
+  authUser=session?.user||null;
+  let pendingMerge=null; try{pendingMerge=localStorage.getItem('tw_merge');}catch(e){}
+  if(session&&!isGuest()&&pendingMerge) await afterLogin();
+  else await restoreProfile();
+  maybeAskPassword();
+  if(profile.countryCode)fillCountrySelect(document.getElementById('c-country'),profile.countryCode);
+}
+init();
 </script>
 </body>
 </html>
