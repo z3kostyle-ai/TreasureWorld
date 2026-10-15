@@ -190,6 +190,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
 .scan-msg{font-size:11px;color:#888;margin:8px 0;min-height:14px;}
 .print-box{background:var(--purple-bg);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--purple-dark);display:none;align-items:center;justify-content:space-between;gap:8px;}
 
+/* SON */
+.snd-btn{padding:4px 8px;font-size:13px;border:0.5px solid #e0ddd6;border-radius:6px;cursor:pointer;background:transparent;line-height:1;}
+
+/* MES CHASSES */
+.mh-card{border:0.5px solid #e0ddd6;border-radius:10px;padding:12px 13px;margin-bottom:10px;}
+.mh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.mh-name{font-size:14px;font-weight:600;}
+.mh-sub{font-size:11px;color:#888;margin-top:2px;}
+.mh-code{font-family:monospace;font-size:13px;letter-spacing:2px;background:var(--amber-bg);color:#633806;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+.mh-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.mh-stat{background:#f8f7f4;border-radius:7px;padding:7px 4px;text-align:center;}
+.mh-stat b{display:block;font-size:15px;}
+.mh-stat span{font-size:9px;color:#888;}
+.mh-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* IMMERSION : parchemin, machine à écrire, boussole */
+.parchment{background:linear-gradient(180deg,#FBF3E1 0%,#F5E6C4 100%);border:1px solid #E2CC9A;border-radius:12px;padding:16px 15px;box-shadow:inset 0 0 30px rgba(186,117,23,.12);color:#3B2A12;}
+.parchment h3{font-family:Georgia,'Times New Roman',serif;font-size:19px;margin-bottom:4px;}
+.parchment .story{font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.65;white-space:pre-line;margin:10px 0 14px;min-height:40px;}
+.intro-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;}
+.intro-meta span{background:rgba(255,255,255,.6);border-radius:99px;padding:2px 8px;}
+.enigme-txt.typing::after{content:'▍';animation:blink .8s steps(1) infinite;color:var(--amber);}
+@keyframes blink{50%{opacity:0;}}
+.step-enter{animation:stepin .45s ease-out;}
+@keyframes stepin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.compass{display:flex;align-items:center;gap:12px;margin-top:9px;padding-top:9px;border-top:0.5px dashed #e0ddd6;}
+.compass-dial{width:46px;height:46px;border-radius:50%;background:#fff;border:1.5px solid #e0ddd6;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.compass-arrow{font-size:24px;line-height:1;transition:transform .35s ease-out;color:var(--amber);}
+.heat{font-size:14px;font-weight:600;}
+.heat-sub{font-size:11px;color:#888;margin-top:2px;}
+.prox-box.reached{animation:glow 1.2s ease-out 2;}
+@keyframes glow{0%{box-shadow:0 0 0 0 rgba(127,119,221,.55);}100%{box-shadow:0 0 0 14px rgba(127,119,221,0);}}
+.shake{animation:shake .35s;}
+@keyframes shake{20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:10000;}
+
 /* LOADING */
 .loading{text-align:center;padding:2rem;font-size:13px;color:#888;}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid #e0ddd6;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-right:7px;vertical-align:middle;}
@@ -235,6 +271,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
     <button class="tab" onclick="showView('jouer')">Jouer</button>
     <button class="tab" onclick="showView('scores')">Classement</button>
     <button class="tab" onclick="showView('creer')">Créer</button>
+    <button class="tab" onclick="showView('meschasses')">Mes chasses</button>
+    <button class="snd-btn" id="snd-btn" onclick="toggleSound()" title="Son">🔊</button>
   </div>
 </div>
 
@@ -385,6 +423,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1a1a1
   </div>
 </div>
 
+<!-- ── MES CHASSES ── -->
+<div class="view" id="view-meschasses">
+  <div class="panel">
+    <div class="sh"><h2>Mes chasses</h2><button class="btn btn-sm" onclick="loadMyHunts()">Actualiser</button></div>
+    <div id="my-hunts"><div class="loading">Crée ton profil pour voir tes chasses.</div></div>
+  </div>
+</div>
+
 <!-- ── CRÉER ── -->
 <div class="view" id="view-creer">
   <div class="panel">
@@ -511,8 +557,9 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
-  const labels={profil:'Profil',decouvrir:'Découvrir',jouer:'Jouer',scores:'Classement',creer:'Créer'};
+  const labels={profil:'Profil',decouvrir:'Découvrir',jouer:'Jouer',scores:'Classement',creer:'Créer',meschasses:'Mes chasses'};
   document.querySelectorAll('.tab').forEach(t=>{if(t.textContent===labels[name])t.classList.add('active');});
+  if(name==='meschasses') loadMyHunts();
   if(name==='decouvrir'){setTimeout(()=>{initDiscoverMap();loadHunts();},80);}
   if(name==='scores'){setTimeout(()=>{initLbMap();loadLeaderboard();},80);}
   if(name==='creer'){setTimeout(initCreatorMap,80);}
@@ -637,6 +684,7 @@ function showTrophyPopup(t){
   document.getElementById('tp-desc').textContent=t.desc;
   document.getElementById('tp-xp').textContent='+'+t.xp+' XP bonus';
   document.getElementById('trophy-popup').classList.add('show');
+  sfx('trophy'); haptic([60,40,60,40,120]); confetti(70);
 }
 function closePopup(){
   document.getElementById('trophy-popup').classList.remove('show');
@@ -759,15 +807,46 @@ async function startPlay(huntId){
   if(se){toast('Erreur chargement des étapes.');console.error(se);return;}
   hunt.steps=steps||[];
   if(!hunt.steps.length){toast('Cette chasse n\'a aucune étape.');return;}
-  // La session (et le compteur de parties) est créée par le serveur
+  // Session créée par le serveur ; s'il y a une partie en cours sur cette chasse, il la reprend
   const {data:sid,error:sErr}=await sb.rpc('tw_start_session',{p_hunt_id:huntId});
   if(sErr){toast(errMsg(sErr));console.error(sErr);return;}
-  currentHunt=hunt; currentStep=0; sessionId=sid; sessionStart=Date.now();
+  const {data:sess}=await sb.from('game_sessions').select('current_step,started_at').eq('id',sid).single();
+  currentHunt=hunt; sessionId=sid;
+  currentStep=Math.min(sess?.current_step||0,hunt.steps.length-1);
+  sessionStart=sess?.started_at?new Date(sess.started_at).getTime():Date.now();
   showView('jouer');
   document.getElementById('join-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
   document.getElementById('g-title').textContent=hunt.name;
   document.getElementById('player-emo').textContent=profile.emoji||'🧭';
+  renderIntro();
+}
+// Écran d'introduction : le « parchemin » raconte l'histoire de la chasse
+function renderIntro(){
+  const h=currentHunt, total=h.steps.length, resumed=currentStep>0;
+  document.getElementById('prog-bar').style.width=Math.round(currentStep/total*100)+'%';
+  document.getElementById('prog-lbl').textContent=resumed?'Reprise — étape '+(currentStep+1)+' / '+total:total+' étapes';
+  document.getElementById('step-body').innerHTML=`
+    <div class="parchment step-enter">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7;">${resumed?'Ton aventure continue':'Une aventure t\'attend'}</div>
+      <h3>${esc(h.name)}</h3>
+      <div class="intro-meta">
+        ${h.city?`<span>📍 ${esc(h.city)}</span>`:''}
+        <span>🧩 ${total} étapes</span>
+        ${h.duration_min?`<span>⏳ ~${esc(h.duration_min)} min</span>`:''}
+        ${h.difficulty?`<span>⚔️ ${esc(h.difficulty)}</span>`:''}
+      </div>
+      <div class="story" id="intro-story"></div>
+      <button class="btn btn-amber btn-full" style="font-size:14px;padding:10px;" onclick="beginAdventure()">${resumed?'Reprendre à l\'étape '+(currentStep+1):'Commencer l\'aventure'}</button>
+      <div style="font-size:10px;opacity:.65;text-align:center;margin-top:8px;">Le jeu va demander ta position${'DeviceOrientationEvent' in window?' et ta boussole':''}. Reste attentif à la route !</div>
+    </div>`;
+  typeText(document.getElementById('intro-story'),h.description||'Suis les indices, trouve chaque lieu et perce les secrets de cette chasse.',18);
+}
+// Clic sur « Commencer » : c'est le geste qui autorise son, boussole et GPS
+async function beginAdventure(){
+  initAudio();
+  await enableCompass();
+  sfx('start'); haptic(40);
   renderStep();
   startGPS();
 }
@@ -844,16 +923,69 @@ function onDist(dist,radius){
   if(!el)return;
   el.textContent=Math.round(dist);
   if(bar) bar.style.width=Math.max(0,Math.min(100,100-dist/200*100))+'%';
+  updateCompass(dist,radius);
   if(dist<=radius){
     if(ok){ok.style.display='block';}
     if(locked){locked.style.display='none';}
     if(input){input.style.display='block';}
+    if(zoneReachedStep!==currentStep){
+      zoneReachedStep=currentStep;
+      sfx('unlock'); haptic([100,60,100]);
+      document.querySelector('.prox-box')?.classList.add('reached');
+    }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BOUSSOLE « CHAUD / FROID »
+// ═══════════════════════════════════════════════════════════════
+let deviceHeading=null, zoneReachedStep=-1, prevDist=null;
+function bearing(la1,ln1,la2,ln2){
+  const r=Math.PI/180, y=Math.sin((ln2-ln1)*r)*Math.cos(la2*r);
+  const x=Math.cos(la1*r)*Math.sin(la2*r)-Math.sin(la1*r)*Math.cos(la2*r)*Math.cos((ln2-ln1)*r);
+  return (Math.atan2(y,x)/r+360)%360;
+}
+function cardinal(b){return['nord','nord-est','est','sud-est','sud','sud-ouest','ouest','nord-ouest'][Math.round(b/45)%8];}
+let lastBearing=null;
+function onOrientation(e){
+  if(typeof e.webkitCompassHeading==='number') deviceHeading=e.webkitCompassHeading;       // iOS
+  else if(e.absolute&&typeof e.alpha==='number') deviceHeading=(360-e.alpha)%360;          // Android
+  else return;
+  const arrow=document.getElementById('compass-arrow');
+  if(arrow&&lastBearing!=null) arrow.style.transform=`rotate(${lastBearing-deviceHeading}deg)`;
+}
+async function enableCompass(){
+  if(!('DeviceOrientationEvent' in window))return;
+  try{
+    if(typeof DeviceOrientationEvent.requestPermission==='function'){
+      if(await DeviceOrientationEvent.requestPermission()!=='granted')return;
+    }
+  }catch(e){return;}
+  window.removeEventListener('deviceorientationabsolute',onOrientation);
+  window.removeEventListener('deviceorientation',onOrientation);
+  window.addEventListener('ondeviceorientationabsolute' in window?'deviceorientationabsolute':'deviceorientation',onOrientation);
+}
+function updateCompass(dist,radius){
+  const arrow=document.getElementById('compass-arrow'), heat=document.getElementById('heat'), sub=document.getElementById('heat-sub');
+  if(!arrow||!lastPos)return;
+  const s=currentHunt.steps[currentStep];
+  const b=lastBearing=bearing(lastPos[0],lastPos[1],s.lat,s.lng);
+  arrow.style.transform=`rotate(${b-(deviceHeading??0)}deg)`;
+  const [label,color]=dist<=radius?['🔥 Tu y es !','#C2410C']:dist<50?['🔥 Brûlant','#C2410C']:dist<150?['☀️ Chaud','#BA7517']
+    :dist<400?['🌤 Tiède','#8A6D1F']:dist<1000?['❄️ Froid','#2563A8']:['🧊 Glacial','#1E3A8A'];
+  heat.textContent=label; heat.style.color=color;
+  let trend='';
+  if(prevDist!=null&&dist>radius){
+    if(dist<prevDist-3) trend='Tu te rapproches… ';
+    else if(dist>prevDist+3) trend='Tu t\'éloignes ! ';
+  }
+  prevDist=dist;
+  sub.textContent=dist<=radius?'Le secret est ici.':trend+'Direction : '+cardinal(b)+(deviceHeading==null?' (la flèche indique le nord en haut)':'');
 }
 function renderStep(){
   if(!currentHunt){return;}
   if(currentStep>=currentHunt.steps.length)return;
-  hintUsed=false;
+  hintUsed=false; prevDist=null; lastBearing=null;
   const s=currentHunt.steps[currentStep];
   const total=currentHunt.steps.length;
   const pct=Math.round(currentStep/total*100);
@@ -866,21 +998,26 @@ function renderStep(){
   if(s.step_type==='qr') inputHtml=`<div id="step-input" class="step-input"><div style="border:0.5px dashed #e0ddd6;border-radius:8px;padding:1rem;text-align:center;cursor:pointer;" onclick="scanStepQR()"><div style="font-size:22px;margin-bottom:4px;">📷</div><div style="font-size:11px;color:#888;">Scanner le QR code</div></div></div>`;
   else if(s.step_type==='prox') inputHtml=`<div id="step-input" class="step-input"><button class="btn btn-teal" style="width:100%;" onclick="reachStep()">Point atteint — continuer</button></div>`;
   else inputHtml=`<div id="step-input" class="step-input"><div class="ans-row"><input type="text" id="ans" placeholder="Ta réponse…" onkeydown="if(event.key==='Enter')checkAns()"/><button class="btn btn-amber btn-sm" onclick="checkAns()">Valider</button></div></div>`;
-  document.getElementById('step-body').innerHTML=`
+  document.getElementById('step-body').innerHTML=`<div class="step-enter">
     <div style="margin-bottom:6px;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${tBg};color:${tCol};">${tLabel}</span></div>
-    <div class="enigme-txt">${esc(s.text)}</div>
+    <div class="enigme-txt" id="enigme-txt" title="Touche pour tout afficher"></div>
     <div class="prox-box">
       <div style="font-size:10px;color:#888;margin-bottom:5px;">Distance jusqu'au point GPS</div>
       <div class="prox-row"><div><span class="prox-num" id="prox-num">—</span><span style="font-size:11px;color:#888;"> m</span></div><div class="prox-track"><div class="prox-fill" id="prox-fill" style="width:0%"></div></div></div>
       <div class="prox-locked" id="prox-locked">Approche-toi (rayon ${s.trigger_radius||20} m) pour débloquer</div>
       <div class="prox-ok" id="prox-ok">Zone atteinte — énigme déverrouillée !</div>
+      <div class="compass">
+        <div class="compass-dial"><div class="compass-arrow" id="compass-arrow">➤</div></div>
+        <div><div class="heat" id="heat">📡 Recherche du signal GPS…</div><div class="heat-sub" id="heat-sub">Active la localisation et sors à découvert.</div></div>
+      </div>
     </div>
     ${inputHtml}
     <span class="hint-lnk" onclick="showHint()">Voir un indice</span>
     <div class="hint-box" id="hint-box">${esc(s.hint||'Aucun indice disponible.')}</div>
     <div class="fb-ok" id="fb-ok">${s.step_type==='enigme'?'Bonne réponse ! +20 XP':s.step_type==='qr'?'QR validé ! +20 XP':'Étape validée !'}</div>
     <div class="fb-ko" id="fb-ko">Pas tout à fait… réessaie !</div>
-    <div class="demo-only" style="margin-top:9px;"><button class="btn btn-sm" onclick="simArrival()">Simuler arrivée GPS (demo)</button></div>`;
+    <div class="demo-only" style="margin-top:9px;"><button class="btn btn-sm" onclick="simArrival()">Simuler arrivée GPS (demo)</button></div></div>`;
+  typeText(document.getElementById('enigme-txt'),s.text||'',28);
   if(playerMap){playerMap.eachLayer(l=>{if(!(l instanceof L.TileLayer))playerMap.removeLayer(l);});playerMarker=null;drawPSteps();playerMap.setView([s.lat,s.lng],16);if(lastPos&&playerMarker)playerMarker.setLatLng(lastPos);}
   if(lastPos) onDist(haversine(lastPos[0],lastPos[1],s.lat,s.lng),s.trigger_radius||20);
 }
@@ -891,11 +1028,15 @@ let stepBusy=false;
 // Réponse du serveur après une tentative : passe à l'étape suivante ou termine la chasse
 function onStepResult(res,koMsg){
   if(!res.correct){
-    document.getElementById('fb-ko').textContent=koMsg;
-    document.getElementById('fb-ko').style.display='block';
+    const ko=document.getElementById('fb-ko');
+    ko.textContent=koMsg; ko.style.display='block';
     document.getElementById('fb-ok').style.display='none';
+    sfx('ko'); haptic(200);
+    const box=document.getElementById('step-input');
+    if(box){box.classList.remove('shake');void box.offsetWidth;box.classList.add('shake');}
     return;
   }
+  sfx(res.finished?'finish':'ok'); haptic(res.finished?[80,50,80,50,200]:60);
   document.getElementById('fb-ok').style.display='block';
   document.getElementById('fb-ko').style.display='none';
   const inp=document.getElementById('ans'); if(inp) inp.disabled=true;
@@ -928,16 +1069,18 @@ async function reachStep(){
 async function finishHunt(res){
   const dur=res.duration_sec;
   document.getElementById('step-body').innerHTML=`
-    <div style="text-align:center;padding:2rem;">
-      <div style="font-size:42px;margin-bottom:10px;">🏆</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:6px;">Chasse terminée !</div>
-      <div style="font-size:15px;color:#7F77DD;font-weight:600;margin-bottom:4px;">+${Number(res.hunt_xp)||0} XP gagnés</div>
-      ${dur!=null?`<div style="font-size:12px;color:#888;margin-bottom:12px;">Temps : ${Math.floor(dur/60)}m${dur%60}s</div>`:''}
-      <div style="display:flex;gap:8px;justify-content:center;">
+    <div class="parchment step-enter" style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:6px;">🏆</div>
+      <h3>Trésor découvert !</h3>
+      <div style="font-size:12px;opacity:.75;margin-bottom:10px;">${esc(currentHunt?.name||'')}</div>
+      <div style="font-size:18px;color:#7F77DD;font-weight:700;margin-bottom:4px;">+${Number(res.hunt_xp)||0} XP</div>
+      ${dur!=null?`<div style="font-size:12px;opacity:.75;margin-bottom:14px;">Temps : ${Math.floor(dur/60)} min ${dur%60} s</div>`:''}
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button class="btn btn-amber" onclick="showView('scores')">Voir le classement</button>
         <button class="btn" onclick="showView('decouvrir')">Autre chasse</button>
       </div>
     </div>`;
+  confetti(160);
   document.getElementById('prog-bar').style.width='100%';
   document.getElementById('prog-lbl').textContent='Terminé !';
   stopGPS();
@@ -1133,10 +1276,9 @@ function qrDataURL(text){
   return c?c.toDataURL('image/png'):div.querySelector('img').src;
 }
 // Ouvre une page imprimable : QR d'entrée + un QR par étape « QR »
-function printQRCodes(){
-  if(!lastPublished)return;
+function printQRCodes(p=lastPublished){
+  if(!p)return;
   if(!window.QRCode){toast('Générateur de QR non chargé.');return;}
-  const p=lastPublished;
   const card=(title,sub,text)=>`<div class="card"><h2>${esc(title)}</h2><p>${esc(sub)}</p><img src="${qrDataURL(text)}" alt=""/><div class="code">${esc(text)}</div></div>`;
   const cards=[card('Entrée — '+p.name,'Scanne pour rejoindre la chasse',p.code)]
     .concat(p.steps.filter(s=>s.step_type==='qr').map(s=>card('Étape '+s.step_order,s.text,s.answer)));
@@ -1151,6 +1293,135 @@ h2{font-size:18px;margin:0 0 4px;}p{font-size:13px;color:#555;margin:0 0 10px;}i
 <body><div class="bar"><button onclick="print()" style="padding:10px 18px;font-size:14px;">Imprimer</button></div>${cards.join('')}</body></html>`);
   w.document.close();
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  MES CHASSES
+// ═══════════════════════════════════════════════════════════════
+let myHunts=[];
+async function loadMyHunts(){
+  const box=document.getElementById('my-hunts');
+  if(!profile.id){box.innerHTML='<div class="loading">Crée ton profil pour voir tes chasses.</div>';return;}
+  box.innerHTML='<div class="loading"><span class="spinner"></span>Chargement…</div>';
+  const {data,error}=await sb.rpc('tw_my_hunts');
+  if(error){box.innerHTML='<div class="loading">Impossible de charger tes chasses.</div>';console.error(error);return;}
+  myHunts=data||[];
+  if(!myHunts.length){
+    box.innerHTML='<div class="loading">Tu n\'as encore créé aucune chasse.<br><br><button class="btn btn-amber" onclick="showView(\'creer\')">Créer ma première chasse</button></div>';
+    return;
+  }
+  box.innerHTML=myHunts.map((h,i)=>{
+    const rate=h.play_count?Math.round(h.completions/h.play_count*100)+'%':'—';
+    const best=h.best_time_sec?Math.floor(h.best_time_sec/60)+' min':'—';
+    const st=h.status==='publiee'?'<span class="badge b-green">Publiée</span>':`<span class="badge b-gray">${esc(h.status)}</span>`;
+    return `<div class="mh-card">
+      <div class="mh-head">
+        <div><div class="mh-name">${esc(h.name)}</div><div class="mh-sub">${h.city?esc(h.city)+' · ':''}${h.step_count} étapes${h.qr_count?' · '+h.qr_count+' QR':''} · ${st}</div></div>
+        <div class="mh-code" title="Code joueurs">${esc(h.access_code)}</div>
+      </div>
+      <div class="mh-stats">
+        <div class="mh-stat"><b>${h.play_count}</b><span>parties</span></div>
+        <div class="mh-stat"><b>${h.completions}</b><span>terminées</span></div>
+        <div class="mh-stat"><b>${rate}</b><span>réussite</span></div>
+        <div class="mh-stat"><b>${best}</b><span>record</span></div>
+      </div>
+      <div class="mh-actions">
+        <button class="btn btn-sm btn-purple" onclick="printMyHuntQR(${i})">🖨 Imprimer les QR</button>
+        <button class="btn btn-sm" onclick="copyHuntCode(${i})">📋 Copier le code</button>
+        ${h.status==='publiee'?`<button class="btn btn-sm btn-amber" onclick="startPlay('${esc(h.id)}')">▶ Tester</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function printMyHuntQR(i){
+  const h=myHunts[i];
+  const {data,error}=await sb.rpc('tw_my_qr_codes',{p_hunt_id:h.id});
+  if(error){toast('Erreur : '+error.message);return;}
+  printQRCodes({name:h.name,code:h.access_code,
+    steps:(data||[]).map(r=>({step_type:'qr',step_order:r.step_order,text:r.text,answer:r.qr}))});
+}
+async function copyHuntCode(i){
+  const h=myHunts[i];
+  try{await navigator.clipboard.writeText(h.access_code);toast('Code « '+h.access_code+' » copié !');}
+  catch(e){toast('Code : '+h.access_code);}
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AMBIANCE : sons (synthétisés, aucun fichier), vibrations, texte, confettis
+// ═══════════════════════════════════════════════════════════════
+let audioCtx=null;
+let soundOn=true;
+try{soundOn=localStorage.getItem('tw_sound')!=='off';}catch(e){}
+function initAudio(){
+  if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)audioCtx=new AC();}
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+}
+function renderSoundBtn(){document.getElementById('snd-btn').textContent=soundOn?'🔊':'🔇';}
+function toggleSound(){
+  soundOn=!soundOn;
+  try{localStorage.setItem('tw_sound',soundOn?'on':'off');}catch(e){}
+  renderSoundBtn();
+  if(soundOn){initAudio();sfx('ok');}
+}
+function tone(freq,start,dur,type='sine',vol=.18){
+  const t=audioCtx.currentTime+start, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start(t); o.stop(t+dur+0.05);
+}
+const SFX={
+  start: ()=>[392,523,659].forEach((f,i)=>tone(f,i*.12,.35,'triangle')),
+  unlock:()=>[523,659,784,1047].forEach((f,i)=>tone(f,i*.09,.4,'sine',.2)),
+  ok:    ()=>{tone(659,0,.18,'triangle');tone(988,.12,.35,'triangle');},
+  ko:    ()=>{tone(196,0,.25,'sawtooth',.08);tone(147,.15,.35,'sawtooth',.08);},
+  trophy:()=>[523,523,523,659,784,1047].forEach((f,i)=>tone(f,[0,.12,.24,.36,.52,.68][i],i===5?.7:.16,'square',.07)),
+  finish:()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i*.14,i===5?.9:.2,'triangle',.18)),
+};
+function sfx(name){
+  if(!soundOn)return;
+  try{initAudio(); if(audioCtx&&SFX[name])SFX[name]();}catch(e){}
+}
+function haptic(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+
+// Texte qui s'écrit lettre par lettre ; une touche affiche tout d'un coup
+function typeText(el,text,speed){
+  if(!el)return;
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){el.textContent=text;return;}
+  const token={}; el._typing=token;
+  let i=0;
+  el.textContent=''; el.classList.add('typing');
+  const done=()=>{el.textContent=text;el.classList.remove('typing');el._typing=null;};
+  el.onclick=()=>{if(el._typing===token)done();};
+  (function step(){
+    if(el._typing!==token)return;
+    if(i>=text.length){done();return;}
+    i=Math.min(text.length,i+(text.length>400?3:1));
+    el.textContent=text.slice(0,i);
+    setTimeout(step,/[.!?…]/.test(text[i-1])?speed*8:speed);
+  })();
+}
+
+// Confettis (canvas plein écran, se retire tout seul)
+function confetti(n){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=document.createElement('canvas'); c.id='confetti';
+  c.width=innerWidth; c.height=innerHeight; document.body.appendChild(c);
+  const ctx=c.getContext('2d'), colors=['#BA7517','#FAC775','#7F77DD','#0F6E56','#E24B4A','#FFFFFF'];
+  const parts=Array.from({length:n},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,r:Math.random()*6.28,vr:(Math.random()-.5)*.3,
+    w:6+Math.random()*6,h:4+Math.random()*4,col:colors[Math.random()*colors.length|0]}));
+  const t0=performance.now();
+  (function frame(t){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.r+=p.vr;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.col;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+    if(t-t0<3500) requestAnimationFrame(frame); else c.remove();
+  })(t0);
+}
+renderSoundBtn();
 
 // Bouton « Simuler arrivée GPS » visible uniquement avec ?demo dans l'URL
 const DEMO_MODE=new URLSearchParams(location.search).has('demo');
